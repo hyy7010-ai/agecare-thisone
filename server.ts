@@ -11,7 +11,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
   
-  app.use(express.json());
+  app.use(express.json({ limit: '25mb' }));
 
   // Initialize Gemini lazy
   let ai: GoogleGenAI | null = null;
@@ -587,11 +587,14 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   app.post('/api/generate-family-update', async (req, res) => {
     try {
       const { resident, careNotes } = req.body;
-      const ai = getAi();
+      
+      if (!resident || !resident.name) {
+        return res.status(400).json({ error: 'Resident data is required.' });
+      }
 
       const prompt = `
         You are a compassionate aged care communication assistant.
-        Your task is to generate a short, warm, and HIPAA-compliant family update message.
+        Your task is to generate a short, warm, and Privacy Act 1988 / APPs compliant family update message.
         
         Resident Profile:
         Name: ${resident.name}

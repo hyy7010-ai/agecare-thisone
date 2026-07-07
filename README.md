@@ -33,13 +33,13 @@ The React/Vite frontend provides a polished interface for:
 - Extended native language training modules for staff.
 
 ## Tech Stack
-- **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons
+- **Frontend**: React 19, Vite, Tailwind CSS, Lucide Icons
 - **Backend**: Express.js (Node.js), `@google/genai` SDK
 - **Database**: Firebase Firestore (for simulated real-time data syncing and note persistence)
 
 ## Data Governance & Privacy
 - This application processes simulated, non-identifiable patient data. 
-- In a production environment, AI processing would require Business Associate Agreements (BAA) and explicit consent frameworks compliant with the Australian Privacy Principles (APPs).
+- In a production environment, AI processing would require explicit consent frameworks compliant with the Australian Privacy Principles (APPs).
 - Currently, Gemini API calls do *not* use data for model training if configured via enterprise endpoints, ensuring organizational data security.
 
 ## Setup & Running

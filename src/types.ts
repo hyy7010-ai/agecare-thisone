@@ -44,6 +44,9 @@ export interface SIRSReport {
   category: string;
   priority: 1 | 2 | null;
   incidentTitle?: string;
+  timeframe?: string;
+  actWarning?: string;
+  lockDowngrade?: boolean;
   residentName?: string;
   autofillReport: {
     whatHappened: string;

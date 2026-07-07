@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aged-care-v1';
+const CACHE_NAME = 'aged-care-v2';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -12,49 +12,63 @@ self.addEventListener('install', (event) => {
         return cache.addAll(URLS_TO_CACHE);
       })
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only cache GET requests
   if (event.request.method !== 'GET') return;
-  // Ignore API requests for caching
   if (event.request.url.includes('/api/')) return;
-  // Ignore firestore/google auth endpoints
   if (event.request.url.includes('firestore') || event.request.url.includes('identitytoolkit')) return;
 
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
+          fetch(event.request).then((networkResponse) => {
+            if(networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+              caches.open(CACHE_NAME).then((cache) => {
+                if (event.request.url.startsWith('http')) {
+                  cache.put(event.request, networkResponse.clone());
+                }
+              });
+            }
+          }).catch(() => {});
           return response;
         }
-
-        // Clone the request because it's a stream and can only be consumed once
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
+        return fetch(event.request).then(
           (response) => {
-            // Check if we received a valid response
             if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-
-            // Clone the response because it's a stream
             const responseToCache = response.clone();
-
             caches.open(CACHE_NAME)
               .then((cache) => {
-                // Ignore chrome-extension schemes
                 if (event.request.url.startsWith('http')) {
                   cache.put(event.request, responseToCache);
                 }
               });
-
             return response;
           }
         ).catch(() => {
-          // If offline and request fails, try to return offline fallback if appropriate
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
         });
       })
   );

@@ -8,6 +8,9 @@ interface SirsEvent extends SIRSAlertData {
   id: string;
   timestamp: any;
   status: 'pending' | 'acknowledged' | 'submitted';
+  category?: string;
+  reporterName?: string;
+  description?: string;
 }
 
 export function SirsReviewDashboard({ onBack }: { onBack: () => void }) {
@@ -98,7 +101,7 @@ export function SirsReviewDashboard({ onBack }: { onBack: () => void }) {
                       )}
                     </div>
                     <div className="font-medium text-slate-900 text-sm mb-1 truncate">
-                      {ev.category}
+                      {ev.reportInfo?.category || ev.category || 'Incident Report'}
                     </div>
                     <div className="text-xs text-slate-500">
                       {ev.timestamp?.toDate ? new Date(ev.timestamp.toDate()).toLocaleString() : 'Just now'}
@@ -119,8 +122,8 @@ export function SirsReviewDashboard({ onBack }: { onBack: () => void }) {
               }`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-1">{selectedEvent.category}</h2>
-                    <p className="text-slate-600 font-medium">Reported by {selectedEvent.reporterName}</p>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-1">{selectedEvent.reportInfo?.category || selectedEvent.category || 'Incident Report'}</h2>
+                    <p className="text-slate-600 font-medium">Reported by {selectedEvent.reporterName || 'Staff'}</p>
                   </div>
                   <span className={`text-sm font-bold px-3 py-1 rounded-full ${
                     selectedEvent.priority === 1 ? 'bg-red-600 text-white' : 'bg-orange-500 text-white'
@@ -130,7 +133,7 @@ export function SirsReviewDashboard({ onBack }: { onBack: () => void }) {
                 </div>
                 <div className="flex gap-2">
                   <div className="bg-white/60 px-3 py-1 rounded-md text-sm font-medium border border-white">
-                    Due: {selectedEvent.timeframe}
+                    Due: {selectedEvent.reportInfo?.timeframe || (selectedEvent.priority === 1 ? '24 Hours' : '30 Days')}
                   </div>
                   <div className="bg-white/60 px-3 py-1 rounded-md text-sm font-medium border border-white capitalize">
                     Status: {selectedEvent.status || 'Pending Review'}
@@ -142,21 +145,21 @@ export function SirsReviewDashboard({ onBack }: { onBack: () => void }) {
                 <div>
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Original Narrative</h3>
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-700 whitespace-pre-wrap">
-                    {selectedEvent.description}
+                    {selectedEvent.description || selectedEvent.message || selectedEvent.reportInfo?.autofillReport?.whatHappened}
                   </div>
                 </div>
 
                 <div>
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">AI Compliance Analysis</h3>
                   <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                    <p className="text-indigo-900 font-medium whitespace-pre-wrap">{selectedEvent.reasoning}</p>
+                    <p className="text-indigo-900 font-medium whitespace-pre-wrap">{selectedEvent.reportInfo?.uncertaintyFlag || 'High confidence classification based on ACQSC guidelines.'}</p>
                   </div>
                 </div>
 
                 <div>
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Required Actions</h3>
                   <ul className="space-y-2">
-                    {selectedEvent.requiredActions.map((action, i) => (
+                    {[selectedEvent.reportInfo?.autofillReport?.immediateSafetyActions, selectedEvent.reportInfo?.autofillReport?.preventiveActions, selectedEvent.reportInfo?.autofillReport?.regulatorNotification].filter(Boolean).map((action, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <ChevronRight className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
                         <span className="text-slate-700">{action}</span>

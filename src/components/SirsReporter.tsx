@@ -22,6 +22,7 @@ import { initAuth } from "../lib/auth";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { addToOfflineQueue } from "../lib/offlineQueue";
+import { scrubPII } from "../lib/piiScrubber";
 
 interface SirsReporterProps {
   onCancel: () => void;
@@ -139,7 +140,8 @@ ${sirsResult.autofillReport.regulatorNotification}
     if (!description.trim() && !audioBase64 && !imageBase64) return;
 
     if (!isOnline) {
-      await addToOfflineQueue('sirsReport', { description, audioBase64, imageBase64 });
+      const scrubbedDescription = description ? scrubPII(description, "Unknown") : "";
+      await addToOfflineQueue('sirsReport', { description: scrubbedDescription, audioBase64, imageBase64 });
       setIsSubmitted(true);
       return;
     }
@@ -157,15 +159,17 @@ ${sirsResult.autofillReport.regulatorNotification}
       setScrubbingStatus('Scanning media & text for PII...');
       
       await new Promise(r => setTimeout(r, 600));
-      setScrubbingStatus('Redacting patient identifiers locally...');
+      setScrubbingStatus('Redacting identifiers locally...');
       
+      const scrubbedDescription = description ? scrubPII(description, "Unknown") : "";
+
       await new Promise(r => setTimeout(r, 600));
       setScrubbingStatus('Encrypting sanitized payload for AI Analysis...');
 
       const res = await fetch("/api/sirs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description, audioBase64, imageBase64 }),
+        body: JSON.stringify({ description: scrubbedDescription, audioBase64, imageBase64 }),
       });
       
       setScrubbingStatus(null);
@@ -212,9 +216,18 @@ ${sirsResult.autofillReport.regulatorNotification}
 
   const handleFinish = () => {
     if (!sirsResult) return;
+    
+    let finalPriority = sirsResult.priority;
+    if (overridePriority !== null && overridePriority !== 'none') {
+      finalPriority = Number(overridePriority) as 1 | 2;
+    } else if (overridePriority === 'none') {
+       onCancel();
+       return;
+    }
+
     onSubmit({
-      priority: sirsResult.priority || 2, // default to 2 if somehow null but accepted
-      message: sirsResult.autofillReport.whatHappened,
+      priority: (finalPriority || 2) as 1 | 2, // default to 2 if somehow null
+      message: sirsResult.autofillReport?.whatHappened || 'Incident report',
       reportInfo: sirsResult,
     });
   };
@@ -222,7 +235,7 @@ ${sirsResult.autofillReport.regulatorNotification}
   const getPriorityValue = (p: number | null | 'none' | undefined) => p === 1 ? 1 : (p === 2 ? 2 : 99);
   const currentPriorityVal = overridePriority !== null ? getPriorityValue(overridePriority) : getPriorityValue(sirsResult?.priority);
   const aiPriorityVal = getPriorityValue(sirsResult?.priority);
-  const isBreach = currentPriorityVal > aiPriorityVal;
+  const isBreach = aiPriorityVal === 1 && currentPriorityVal > aiPriorityVal;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -275,6 +288,28 @@ ${sirsResult.autofillReport.regulatorNotification}
                   </p>
                 </div>
               )}
+            </div>
+          ) : (isSubmitted && !isOnline) ? (
+            <div className="bg-white p-8 rounded-2xl border border-amber-200 shadow-sm animate-in zoom-in-95">
+              <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="w-10 h-10 text-amber-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                  Saved Offline
+                </h2>
+                <p className="text-amber-700 font-medium">
+                  The report has been saved locally and will be analyzed when your connection is restored.
+                </p>
+              </div>
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={onCancel}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-8 rounded-xl transition-colors"
+                >
+                  Return to Dashboard
+                </button>
+              </div>
             </div>
           ) : !sirsResult ? (
             <div className="space-y-6">
@@ -392,28 +427,6 @@ ${sirsResult.autofillReport.regulatorNotification}
               <p className="text-slate-500 mt-2">
                 Filing official SIRS report via Gmail API.
               </p>
-            </div>
-          ) : (isSubmitted && !isOnline) ? (
-            <div className="bg-white p-8 rounded-2xl border border-amber-200 shadow-sm animate-in zoom-in-95">
-              <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="w-10 h-10 text-amber-600" />
-                </div>
-                <h2 className="text-3xl font-bold text-slate-900 mb-2">
-                  Saved Offline
-                </h2>
-                <p className="text-amber-700 font-medium">
-                  The report has been saved locally and will be analyzed when your connection is restored.
-                </p>
-              </div>
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={onCancel}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-8 rounded-xl transition-colors"
-                >
-                  Return to Dashboard
-                </button>
-              </div>
             </div>
           ) : isSubmitted && sirsResult ? (
             <div className="bg-white p-8 rounded-2xl border border-emerald-200 shadow-sm animate-in zoom-in-95">

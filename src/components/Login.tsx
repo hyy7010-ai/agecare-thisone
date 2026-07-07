@@ -43,6 +43,9 @@ export const Login: React.FC = () => {
       try {
         setError("");
         setLoading(true);
+        if ("Notification" in window && Notification.permission !== "denied" && Notification.permission !== "granted") {
+          Notification.requestPermission();
+        }
         loginAsDemo(testAccounts[email]);
         navigate("/");
         return;
@@ -134,16 +137,17 @@ export const Login: React.FC = () => {
       {/* Right Panel - Login */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative">
         {/* Language Toggle */}
-        <div className="absolute top-4 right-4 relative group self-start justify-self-end mt-4 mr-4 z-50 inline-block">
-            <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-full flex items-center justify-center transition-colors">
-            <Globe className="w-5 h-5" />
-            <span className="ml-1 text-xs uppercase font-medium">{lang}</span>
-            </button>
-            <div className="absolute right-0 mt-1 w-24 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-            <button onClick={() => setLang('en')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 \${lang === 'en' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>English</button>
-            <button onClick={() => setLang('zh')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 \${lang === 'zh' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>中文</button>
-            <button onClick={() => setLang('tl')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 \${lang === 'tl' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>Tagalog</button>
-            </div>
+        <div className="absolute top-4 right-4 relative self-start justify-self-end mt-4 mr-4 z-50 inline-flex items-center">
+          <Globe className="w-5 h-5 text-slate-500 mr-1" />
+          <select 
+            value={lang} 
+            onChange={(e) => setLang(e.target.value as any)}
+            className="bg-transparent text-sm font-medium text-slate-600 focus:outline-none cursor-pointer"
+          >
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="tl">Tagalog</option>
+          </select>
         </div>
         <div className="max-w-md w-full space-y-8">
           <div className="text-center lg:text-left">

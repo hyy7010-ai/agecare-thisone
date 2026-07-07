@@ -17,7 +17,18 @@ const translations = {
     offline: "⚠️ Offline Mode: Data temporarily saved to local cache.",
     roster: "Roster",
     staff: "Staff",
-    handover: "Handover"
+    handover: "Handover",
+    live_dashboard: "Live Dashboard",
+    real_time_overview: "Real-time resident wellness overview",
+    find_resident: "Find resident...",
+    log_sirs_incident: "Log SIRS Incident",
+    room: "Room",
+    care_minutes: "Care Minutes",
+    status: "Status",
+    basic_care_tasks: "Basic Care Tasks",
+    bath: "Bath",
+    meal: "Meal",
+    toilet: "Toilet"
   },
   zh: {
     take_photo: "拍照",
@@ -33,7 +44,18 @@ const translations = {
     offline: "⚠️ 离线模式：数据已暂存本地，联网后同步。",
     roster: "排班",
     staff: "员工管理",
-    handover: "交接班"
+    handover: "交接班",
+    live_dashboard: "实时看板",
+    real_time_overview: "实时居民健康概览",
+    find_resident: "搜索长者...",
+    log_sirs_incident: "上报 SIRS 事件",
+    room: "房间号",
+    care_minutes: "护理时长",
+    status: "状态",
+    basic_care_tasks: "基础护理",
+    bath: "洗浴",
+    meal: "进餐",
+    toilet: "如厕"
   },
   tl: {
     take_photo: "Kumuha ng Litrato",
@@ -49,7 +71,18 @@ const translations = {
     offline: "⚠️ Offline Mode: Pansamantalang nai-save ang data.",
     roster: "Roster",
     staff: "Kawani",
-    handover: "Handover"
+    handover: "Handover",
+    live_dashboard: "Live Dashboard",
+    real_time_overview: "Real-time na pangkalahatang ideya",
+    find_resident: "Maghanap ng residente...",
+    log_sirs_incident: "I-log ang SIRS Incident",
+    room: "Kwarto",
+    care_minutes: "Care Minutes",
+    status: "Katayuan",
+    basic_care_tasks: "Pangunahing Pangangalaga",
+    bath: "Paligo",
+    meal: "Pagkain",
+    toilet: "Banyo"
   }
 };
 
@@ -62,7 +95,15 @@ const LanguageContext = createContext<{
 }>({ lang: 'en', setLang: () => {}, t: (k) => k, isOnline: true, toggleSimulateOffline: () => {} });
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLang] = useState<Language>('en');
+  const [lang, setLangState] = useState<Language>(() => {
+    return (localStorage.getItem('preferredLang') as Language) || 'en';
+  });
+  
+  const setLang = (newLang: Language) => {
+    setLangState(newLang);
+    localStorage.setItem('preferredLang', newLang);
+  };
+  
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [simulateOffline, setSimulateOffline] = useState(false);
 

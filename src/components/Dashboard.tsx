@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { ShieldAlert, Search, Filter, Clock, CheckCircle } from "lucide-react";
 import { Resident, PendingReview } from "../types";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface DashboardProps {
   residents: Resident[];
@@ -19,6 +20,14 @@ export function Dashboard({
   isCaregiver,
   pendingReviews = []
 }: DashboardProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const { t } = useLanguage();
+
+  const filteredResidents = residents.filter(r => 
+    r.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    r.room?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const getInitials = (name: string) =>
     (name || "")
       .split(" ")
@@ -32,10 +41,10 @@ export function Dashboard({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-4xl font-bold text-slate-800 tracking-tight font-heading">
-            Live Dashboard
+            {t('live_dashboard') as any || "Live Dashboard"}
           </h1>
           <p className="text-slate-500 font-medium mt-2 text-base">
-            Real-time resident wellness overview
+            {t('real_time_overview') as any || "Real-time resident wellness overview"}
           </p>
         </div>
 
@@ -44,7 +53,9 @@ export function Dashboard({
             <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Find resident..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={(t('find_resident') as any) || "Find resident..."}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium placeholder-slate-400 text-base shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
             />
           </div>
@@ -54,14 +65,14 @@ export function Dashboard({
               className="hidden md:flex items-center gap-2 px-6 py-3 bg-rose-600 text-white font-bold text-lg rounded-xl hover:bg-rose-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 focus:ring-4 focus:ring-rose-500/30"
             >
               <ShieldAlert className="w-6 h-6" />
-              Log SIRS Incident
+              {(t('log_sirs_incident') as any) || "Log SIRS Incident"}
             </button>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {residents.map((resident) => (
+        {filteredResidents.map((resident) => (
           <button
             key={resident.id}
             onClick={() => onResidentClick(resident.id)}

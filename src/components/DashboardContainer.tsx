@@ -55,6 +55,7 @@ export const DashboardContainer: React.FC = () => {
   const [familyAppreciation, setFamilyAppreciation] = useState<{name: string, time: string} | null>(null);
   const [offlineSyncCount, setOfflineSyncCount] = useState(0);
 
+
   useEffect(() => {
     const checkQueue = async () => {
       const queue = await getOfflineQueue();
@@ -65,12 +66,19 @@ export const DashboardContainer: React.FC = () => {
     return () => window.removeEventListener('offline_queue_updated', checkQueue);
   }, []);
 
+
+  const syncingRef = React.useRef(false);
+
   useEffect(() => {
-    if (isOnline && offlineSyncCount > 0) {
+    if (isOnline && offlineSyncCount > 0 && !syncingRef.current) {
       // Try to sync items
       const syncItems = async () => {
+        syncingRef.current = true;
         const queue = await getOfflineQueue();
-        if (queue.length === 0) return;
+        if (queue.length === 0) {
+          syncingRef.current = false;
+          return;
+        }
         
         for (const item of queue) {
           try {
@@ -94,7 +102,7 @@ export const DashboardContainer: React.FC = () => {
                 description: item.data.description || "Media report (Offline)",
                 timestamp: serverTimestamp(),
                 status: 'pending',
-                reporterName: userProfile?.name || "Offline User",
+                reporterName: userProfile?.displayName || "Offline User",
                 residentId: null
               });
             }
@@ -103,10 +111,12 @@ export const DashboardContainer: React.FC = () => {
             console.error("Failed to sync item", e);
           }
         }
+        syncingRef.current = false;
       };
       syncItems();
     }
   }, [isOnline, offlineSyncCount]);
+
 
   useEffect(() => {
     if (userProfile?.role === "family") return;
@@ -136,6 +146,7 @@ export const DashboardContainer: React.FC = () => {
     const interval = setInterval(checkAppreciation, 5000);
     return () => clearInterval(interval);
   }, []);
+
 
   useEffect(() => {
     let unsubResidents: () => void = () => {};
@@ -173,15 +184,6 @@ export const DashboardContainer: React.FC = () => {
                     body: data.message || "A high-priority incident requires immediate attention.",
                     icon: "/favicon.ico", // Or any icon path
                     requireInteraction: true
-                  });
-                } else if ("Notification" in window && Notification.permission !== "denied") {
-                  Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                      new Notification("🚨 P1 SIRS Event Detected", {
-                        body: data.message || "A high-priority incident requires immediate attention.",
-                        requireInteraction: true
-                      });
-                    }
                   });
                 }
               }
@@ -513,16 +515,17 @@ export const DashboardContainer: React.FC = () => {
             </div>
 
             {/* Language Toggle */}
-            <div className="relative group">
-              <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-full flex items-center justify-center transition-colors">
-                <Globe className="w-5 h-5" />
-                <span className="ml-1 text-xs uppercase font-medium">{lang}</span>
-              </button>
-              <div className="absolute right-0 mt-1 w-24 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <button onClick={() => setLang('en')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 ${lang === 'en' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>English</button>
-                <button onClick={() => setLang('zh')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 ${lang === 'zh' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>中文</button>
-                <button onClick={() => setLang('tl')} className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 ${lang === 'tl' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>Tagalog</button>
-              </div>
+            <div className="relative flex items-center">
+              <Globe className="w-5 h-5 text-slate-500 mr-1" />
+              <select 
+                value={lang} 
+                onChange={(e) => setLang(e.target.value as any)}
+                className="bg-transparent text-sm font-medium text-slate-600 focus:outline-none cursor-pointer"
+              >
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="tl">Tagalog</option>
+              </select>
             </div>
 
             {/* Simulated Offline Toggle */}

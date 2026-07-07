@@ -60,8 +60,7 @@ export function ResidentProfile({
   const [audioProcessingStage, setAudioProcessingStage] = useState<number>(0);
   const [lastAudioBlob, setLastAudioBlob] = useState<Blob | null>(null);
   const [speechSupported] = useState<boolean>(
-    typeof window !== "undefined" &&
-      ("SpeechRecognition" in window || "webkitSpeechRecognition" in window),
+    typeof window !== "undefined" && "MediaRecorder" in window
   );
 
   // Daily Summary state
@@ -370,10 +369,11 @@ export function ResidentProfile({
         }
       } catch (networkError: any) {
         // Fallback to Gemini Nano (Chrome Built-in AI) if offline or fetch fails
-        if (typeof (window as any).ai !== 'undefined' && (window as any).ai.languageModel) {
+        const aiAPI = (window as any).ai?.languageModel || (window as any).ai?.assistant || (window as any).LanguageModel || (window as any).ai;
+        if (typeof aiAPI !== 'undefined' && typeof aiAPI.create === 'function') {
           try {
-            setScrubbingStatus('Network unavailable. Drafting locally using On-Device AI (Gemini Nano)...');
-            const session = await (window as any).ai.languageModel.create({
+            setScrubbingStatus('Network unavailable. Drafting locally using On-Device AI...');
+            const session = await aiAPI.create({
               systemPrompt: "You are a professional aged care assistant. Rewrite the following raw caregiver input into a concise, professional clinical progress note. Provide ONLY the final English note, without markdown."
             });
             const nanoResult = await session.prompt(scrubbedInput);
@@ -521,13 +521,6 @@ export function ResidentProfile({
       </p>
     </div>
   );
-
-  const getConfidenceScore = (text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes('unclear') || lower.includes('blurry') || lower.includes('cannot determine')) return 65;
-    if (lower.includes('bleeding') || lower.includes('severe')) return 98;
-    return 94; // Example default score
-  };
 
   const isCriticalSymptom = (text: string) => {
     const lower = text.toLowerCase();
@@ -722,7 +715,7 @@ export function ResidentProfile({
             </h2>
             <div className="flex items-center gap-1 mt-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 w-fit">
               <ShieldAlert className="w-3.5 h-3.5" />
-              Privacy-Preserving Mode Active (HIPAA Compliant)
+              Privacy-Preserving Mode Active (Privacy Act 1988 / APPs)
             </div>
           </div>
           <button
@@ -930,14 +923,6 @@ export function ResidentProfile({
                   </h3>
                 </div>
                 <div className="flex items-center gap-3">
-                  {(() => {
-                    const conf = getConfidenceScore(aiResult.observation);
-                    return (
-                      <span className={`text-xs font-semibold px-2 py-1 rounded \${conf < 70 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                        {conf < 70 ? 'Low Confidence' : 'Confidence'}: {conf}%
-                      </span>
-                    )
-                  })()}
                   <span className="text-xs font-normal uppercase tracking-wider bg-teal-100 text-teal-800 px-2 py-1 rounded">
                     Draft
                   </span>
@@ -1111,7 +1096,7 @@ export function ResidentProfile({
                   ) : (
                     <>
                       <Mic className="w-5 h-5" />
-                      Hold to Dictate Observation
+                      Tap to Dictate Observation
                     </>
                   )}
                 </button>

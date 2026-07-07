@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Clock, CheckCircle2, Activity, Coffee, Sun, Moon, Globe2, Sparkles } from 'lucide-react';
+import { Heart, Clock, CheckCircle2, Activity, Coffee, Sun, Moon, Globe2, Sparkles, AlertTriangle } from 'lucide-react';
 import { Resident } from '../types';
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 interface FamilyDashboardProps {
   resident?: Resident;
@@ -10,6 +12,7 @@ export function FamilyDashboard({ resident }: FamilyDashboardProps) {
   const [lang, setLang] = useState<'en' | 'zh'>('en');
   const [appreciationSent, setAppreciationSent] = useState(false);
   const [dynamicUpdate, setDynamicUpdate] = useState<{text: string, time: string} | null>(null);
+  const [recentIncident, setRecentIncident] = useState<any | null>(null);
 
   useEffect(() => {
     if (resident?.id) {
@@ -23,6 +26,23 @@ export function FamilyDashboard({ resident }: FamilyDashboardProps) {
           console.error(e);
         }
       }
+    }
+
+    if (db) {
+      const q = query(collection(db, "sirsEvents"), orderBy("timestamp", "desc"), limit(1));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const latest = snapshot.docs[0].data();
+          // Show alert if recent (e.g. within 24h)
+          if (latest.timestamp) {
+            const timeDiff = Date.now() - latest.timestamp.toMillis();
+            if (timeDiff < 24 * 60 * 60 * 1000) {
+              setRecentIncident(latest);
+            }
+          }
+        }
+      });
+      return () => unsubscribe();
     }
   }, [resident?.id]);
 
@@ -144,13 +164,26 @@ export function FamilyDashboard({ resident }: FamilyDashboardProps) {
         </div>
         
         <div className="text-center md:text-left relative z-10 flex-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium mb-3">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            {t[lang].doingWell}
-          </div>
+          {recentIncident ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium mb-3">
+              <AlertTriangle className="w-4 h-4" />
+              Recent Incident Reported
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium mb-3">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              {t[lang].doingWell}
+            </div>
+          )}
           <h1 className="text-3xl font-serif text-slate-800 mb-2">{resident.name}</h1>
           <p className="text-slate-500 font-light max-w-lg leading-relaxed">
-            {t[lang].summary}
+            {recentIncident ? (
+              <span className="text-amber-800 font-medium">
+                {recentIncident.description || recentIncident.message}
+              </span>
+            ) : (
+              t[lang].summary
+            )}
           </p>
           
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">

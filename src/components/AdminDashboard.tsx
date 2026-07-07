@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Users, Activity, Settings, UserPlus, Clock, TrendingUp, AlertTriangle, CheckCircle, BarChart3, Map } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'audit'>('analytics');
@@ -184,7 +184,7 @@ export function AdminDashboard() {
                         <Bar dataKey="incidents" name="Incidents Recorded" radius={[0, 4, 4, 0]}>
                           {
                             riskHeatmapData.map((entry, index) => (
-                              <cell key={`cell-${index}`} fill={entry.risk === 'High' ? '#ef4444' : entry.risk === 'Medium' ? '#f59e0b' : '#10b981'} />
+                              <Cell key={`cell-${index}`} fill={entry.risk === 'High' ? '#ef4444' : entry.risk === 'Medium' ? '#f59e0b' : '#10b981'} />
                             ))
                           }
                         </Bar>
