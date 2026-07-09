@@ -15,6 +15,7 @@ import {
   X,
   Globe,
   Search,
+  Lock,
 } from "lucide-react";
 import { SIRSReport, SIRSAlertData } from "../types";
 import { sendGmailReport } from "../lib/gmail";
@@ -727,10 +728,23 @@ ${sirsResult.autofillReport.regulatorNotification}
                     <button
                       onClick={handleApprove}
                       disabled={isBreach}
-                      className={`font-bold py-3 px-8 rounded-xl transition-colors flex items-center gap-2 ${isBreach ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
+                      className={`font-bold py-3 px-8 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-sm ${
+                        isBreach 
+                          ? 'bg-red-50 text-red-600 border border-red-300 cursor-not-allowed opacity-90 scale-98 shadow-[0_0_10px_rgba(239,68,68,0.15)]' 
+                          : 'bg-slate-900 hover:bg-slate-800 text-white hover:shadow-md'
+                      }`}
                     >
-                      Manager Approve & File
-                      <Send className="w-5 h-5 ml-2" />
+                      {isBreach ? (
+                        <>
+                          <Lock className="w-5 h-5 text-red-500 animate-pulse" />
+                          Submission Locked (SIRS Breach)
+                        </>
+                      ) : (
+                        <>
+                          Manager Approve & File
+                          <Send className="w-5 h-5 ml-2" />
+                        </>
+                      )}
                     </button>
                   </div>
                   

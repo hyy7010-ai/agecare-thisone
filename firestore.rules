@@ -1,8 +1,96 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Global helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isRole(role) {
+      return isSignedIn() && getUserRole() == role;
+    }
+    
+    function isStaff() {
+      return isSignedIn() && (getUserRole() in ['caregiver', 'rn', 'manager', 'admin']);
+    }
+
+    function isRN() {
+      return isRole('rn');
+    }
+
+    function isManager() {
+      return isRole('manager');
+    }
+
+    function isAdmin() {
+      return isRole('admin');
+    }
+
+    // Default deny catch-all
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Residents Collection
+    match /residents/{residentId} {
+      allow read: if isSignedIn();
+      // Only RN, Manager, and Admin can create, update, or delete residents
+      allow create, update, delete: if isSignedIn() && (getUserRole() in ['rn', 'manager', 'admin']);
+    }
+
+    // SIRS Events Collection
+    match /sirsEvents/{eventId} {
+      allow read: if isSignedIn();
+      // Caregivers and staff can log incidents
+      allow create: if isSignedIn();
+      // Only RN, Manager, and Admin can modify or review incidents
+      allow update, delete: if isSignedIn() && (getUserRole() in ['rn', 'manager', 'admin']);
+    }
+
+    // RN Review Queue (for observations and notes awaiting clinical review)
+    match /rnReviewQueue/{queueId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // Only clinical staff can process or sign-off the queue
+      allow update, delete: if isSignedIn() && (getUserRole() in ['rn', 'manager', 'admin']);
+    }
+
+    // Observations Collection (vitals, notes, etc.)
+    match /observations/{obsId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (getUserRole() in ['rn', 'manager', 'admin']);
+    }
+
+    // Shifts / Rosters Collection
+    match /shifts/{shiftId} {
+      allow read: if isSignedIn();
+      // Only managers can roster shifts
+      allow write: if isSignedIn() && (getUserRole() in ['manager', 'admin']);
+    }
+
+    // Today's Summaries
+    match /todaySummaries/{summaryId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+    }
+
+    // Daily Care Notes (the progress notes logged by caregivers/staff)
+    match /dailyCareNotes/{noteId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (getUserRole() in ['rn', 'manager', 'admin']);
     }
   }
 }

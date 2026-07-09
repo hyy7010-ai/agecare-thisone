@@ -5,6 +5,8 @@ import {
   AlertTriangle,
   Edit3,
   ImageOff,
+  FileText,
+  Mic,
 } from "lucide-react";
 import { PendingReview } from "../types";
 
@@ -60,10 +62,14 @@ export function RNReviewList({
                       className="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 shrink-0 flex flex-col items-center justify-center text-slate-400">
-                      <ImageOff className="w-6 h-6 mb-1 opacity-50" />
-                      <span className="text-[10px] uppercase tracking-wider font-medium">
-                        No Image
+                    <div className="w-20 h-20 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0 flex flex-col items-center justify-center text-indigo-600">
+                      {review.aiResult.observationType === "care_note" ? (
+                        <FileText className="w-6 h-6 mb-1 text-indigo-500 animate-pulse" />
+                      ) : (
+                        <ImageOff className="w-6 h-6 mb-1 opacity-50" />
+                      )}
+                      <span className="text-[9px] uppercase tracking-wider font-medium text-center">
+                        {review.aiResult.observationType === "care_note" ? "Care Note" : "No Image"}
                       </span>
                     </div>
                   )}
@@ -105,14 +111,48 @@ export function RNReviewList({
       ) : selectedReview ? (
         // Detail / Review view
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Photo */}
-          <div className="bg-white rounded-2xl p-2 border border-slate-200 overflow-hidden shadow-sm">
+          {/* Left panel: Photo or voice visualization */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 overflow-hidden shadow-sm">
             {selectedReview.photoUrl ? (
               <img
                 src={selectedReview.photoUrl}
                 alt="Captured observation"
                 className="w-full rounded-xl object-cover max-h-[500px]"
               />
+            ) : selectedReview.aiResult.observationType === "care_note" ? (
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
+                    <Mic className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-slate-800">Caregiver Voice Intake</h3>
+                    <p className="text-xs text-slate-500">Transcribed and clinical note compiled by AI</p>
+                  </div>
+                </div>
+                
+                {/* Audio Waveform Graphic */}
+                <div className="flex items-end justify-between h-20 px-4 bg-slate-50 rounded-xl border border-slate-100/60 py-4">
+                  {[35, 60, 45, 75, 20, 85, 40, 55, 90, 65, 30, 70, 50, 80, 45, 60, 35, 55, 70, 40].map((h, i) => (
+                    <div 
+                      key={i} 
+                      className="w-1.5 bg-indigo-400 rounded-full" 
+                      style={{ height: `${h}%` }}
+                    />
+                  ))}
+                </div>
+
+                {selectedReview.aiResult.suggestedCarePlan && (
+                  <div className="space-y-2">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                      Native Confirmation Retranslation
+                    </span>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed italic font-light">
+                      "{selectedReview.aiResult.suggestedCarePlan}"
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-full h-64 rounded-xl bg-slate-50 flex flex-col items-center justify-center text-slate-400 border border-dashed border-slate-200">
                 <ImageOff className="w-12 h-12 mb-2 opacity-30" />

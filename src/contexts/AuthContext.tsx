@@ -116,19 +116,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const loginAsDemo = async (role: UserRole) => {
-    try { await signInAnonymously(auth); } catch(e) { console.warn("Anonymous signin failed", e); }
+    let user = auth.currentUser;
+    if (!user) {
+      try {
+        const res = await signInAnonymously(auth);
+        user = res.user;
+      } catch (e) {
+        console.warn("Anonymous signin failed", e);
+      }
+    }
     const nameMap = {
       caregiver: "Sarah Jenkins",
       rn: "Emily Chen",
       manager: "Michael Thompson",
       admin: "System Admin",
+      family: "Mary Smith (Next of Kin)",
     };
     const profile: UserProfile = {
-      uid: `local-${role}`,
+      uid: user ? user.uid : `local-${role}`,
       email: `${role}@sunrisecare.com`,
       displayName: nameMap[role as keyof typeof nameMap] || "Guest",
       role: role,
     };
+    if (user) {
+      try {
+        await setDoc(doc(db, "users", user.uid), profile);
+      } catch (e) {
+        console.error("Failed to sync demo role to Firestore:", e);
+      }
+    }
     localStorage.setItem("demoProfile", JSON.stringify(profile));
     setDemoProfile(profile);
   };

@@ -14,7 +14,7 @@ An AI-powered application designed to support caregivers and registered nurses (
 To clarify what is fully functional, what is mock UI, and what is planned for the future, this project is structured into three distinct layers:
 
 ### 1. 【AI Fully Implemented】 (Live Gemini Endpoints)
-The backend leverages `gemini-2.5-flash` to process real-time multimodal inputs:
+The backend leverages `gemini-3.5-flash` to process real-time multimodal inputs:
 - **Image Triage API (`/api/vision`)**: Analyzes wound/injury photos to determine type, severity, and potential risks, suggesting temporary care plans based on Australian guidelines.
 - **SIRS Classification API (`/api/sirs`)**: Uses **Google Search Tool Grounding** to look up current ACQSC guidelines and reason about incident priority (Priority 1 vs 2), generating regulator-ready drafts.
 - **Speech Translation API (`/api/audio-note`)**: Processes raw WebM audio recordings from carers in *any language* (Mandarin, Tagalog, etc.) and outputs a structured English clinical note.

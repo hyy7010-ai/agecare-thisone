@@ -93,7 +93,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: {
           parts: [
             { text: prompt },
@@ -201,7 +201,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: {
           parts: [
             { text: prompt },
@@ -349,7 +349,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       }
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: { parts },
         config: {
           responseMimeType: 'application/json',
@@ -460,7 +460,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -521,7 +521,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -569,7 +569,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -614,7 +614,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       `;
 
       const response = await generateWithRetry({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 

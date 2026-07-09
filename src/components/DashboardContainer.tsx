@@ -272,7 +272,7 @@ export const DashboardContainer: React.FC = () => {
     };
   }, []);
 
-  const [sirsInitialData, setSirsInitialData] = useState<{description?: string, sirsResult?: any}>({});
+  const [sirsInitialData, setSirsInitialData] = useState<{description?: string, sirsResult?: any, residentName?: string}>({});
 
   const handleResidentClick = (id: string) => {
     setSelectedResidentId(id);
@@ -329,20 +329,32 @@ export const DashboardContainer: React.FC = () => {
     const review = pendingReviews.find((r) => r.id === id);
     if (review) {
       try {
-        await addDoc(collection(db, "observations"), {
-          residentId: review.residentId,
-          type: review.aiResult.observationType || "general",
-          photoUrl: review.photoUrl || "",
-          aiAnalysis: review.aiResult.observation,
-          location: review.aiResult.bodyLocation || "",
-          sizeEstimate: review.aiResult.estimatedSizeOrType || "",
-          riskFlag: review.aiResult.potentialRiskFlag || "",
-          timestamp: serverTimestamp(),
-          status: "confirmed",
-          confirmedBy: userProfile?.displayName || "Registered Nurse",
-        });
+        if (review.aiResult.observationType === "care_note") {
+          // Route care note reviews to dailyCareNotes
+          await addDoc(collection(db, "dailyCareNotes"), {
+            residentId: review.residentId,
+            content: review.aiResult.observation,
+            shift: "Current",
+            createdBy: "Sarah Jenkins (Caregiver, AI-Assisted)",
+            timestamp: serverTimestamp(),
+          });
+        } else {
+          // Route physical skin or excrement observations to observations
+          await addDoc(collection(db, "observations"), {
+            residentId: review.residentId,
+            type: review.aiResult.observationType || "general",
+            photoUrl: review.photoUrl || "",
+            aiAnalysis: review.aiResult.observation,
+            location: review.aiResult.bodyLocation || "",
+            sizeEstimate: review.aiResult.estimatedSizeOrType || "",
+            riskFlag: review.aiResult.potentialRiskFlag || "",
+            timestamp: serverTimestamp(),
+            status: "confirmed",
+            confirmedBy: userProfile?.displayName || "Registered Nurse",
+          });
+        }
       } catch (e) {
-        console.error("Failed to move review to observations", e);
+        console.error("Failed to move review to database", e);
       }
     }
     try {
@@ -420,7 +432,7 @@ export const DashboardContainer: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center font-sans">
         <Loader2 className="w-12 h-12 text-teal-600 animate-spin mb-4" />
-        <p className="text-slate-500 font-medium">Loading Dashboard Data...</p>
+        <p className="text-slate-500 font-medium">{t('loading_dashboard')}</p>
       </div>
     );
   }
@@ -459,7 +471,7 @@ export const DashboardContainer: React.FC = () => {
                 <WifiOff className="w-5 h-5" />
               </button>
               <button onClick={() => logout()} className="text-slate-500 hover:text-slate-800 text-sm font-medium">
-                Sign Out
+                {t('sign_out')}
               </button>
             </div>
           </div>
@@ -497,10 +509,10 @@ export const DashboardContainer: React.FC = () => {
               <Activity className="w-6 h-6 text-white shrink-0" />
             </div>
             <span className="font-bold text-slate-800 text-xl tracking-tight truncate hidden sm:block font-heading">
-              Sunrise Care System
+              {t('app_title')}
             </span>
             <span className="font-bold text-slate-800 text-lg tracking-tight truncate sm:hidden font-heading">
-              Sunrise
+              {t('app_title_short')}
             </span>
           </div>
 
@@ -592,7 +604,7 @@ export const DashboardContainer: React.FC = () => {
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-red-600 hidden sm:block" />
                 <span className="text-xs font-bold text-red-700">
-                  SIRS Hub
+                  {t('sirs_hub')}
                 </span>
               </button>
             )}
@@ -604,7 +616,7 @@ export const DashboardContainer: React.FC = () => {
               >
                 <Activity className="w-3.5 h-3.5 text-indigo-600 hidden sm:block" />
                 <span className="text-xs font-medium text-slate-700">
-                  Exec View
+                  {t('exec_view')}
                 </span>
               </button>
             )}
@@ -612,7 +624,7 @@ export const DashboardContainer: React.FC = () => {
             <button
               onClick={() => logout()}
               className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-              title="Sign out"
+              title={t('sign_out')}
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -625,7 +637,7 @@ export const DashboardContainer: React.FC = () => {
         <div className="bg-red-50 border-b border-red-200 py-3 px-4 sm:px-6 lg:px-8 relative z-40 flex items-center justify-center gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
           <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse shrink-0" />
           <div className="text-red-800 text-sm font-medium">
-            <strong className="font-bold">CRITICAL ALERT:</strong> No Registered Nurse currently signed into the shift. Care teams must operate under mandatory escalation protocols.
+            {t('critical_alert_rn_coverage')}
           </div>
         </div>
       )}
@@ -638,9 +650,9 @@ export const DashboardContainer: React.FC = () => {
               <span className="text-xl">💖</span>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-slate-800 text-sm">Appreciation Received!</h3>
+              <h3 className="font-bold text-slate-800 text-sm">{t('appreciation_received')}</h3>
               <p className="text-xs text-slate-600 leading-snug mt-0.5">
-                <span className="font-semibold text-pink-600">{familyAppreciation.name}'s family</span> sent appreciation for your care today.
+                <span className="font-semibold text-pink-600">{familyAppreciation.name}'s family</span> {t('sent_appreciation_for_care')}
               </p>
               <p className="text-[10px] text-slate-400 mt-1">{familyAppreciation.time}</p>
             </div>
@@ -670,10 +682,10 @@ export const DashboardContainer: React.FC = () => {
                 clearAlert();
               }}
             >
-              <h3 className="font-bold text-lg">SIRS Priority {globalSirsAlert.priority} Alert</h3>
+              <h3 className="font-bold text-lg">{t('sirs_priority_alert')} (Priority {globalSirsAlert.priority})</h3>
               <p className="text-sm opacity-90 line-clamp-2">{globalSirsAlert.message}</p>
               <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white text-red-700 px-3 py-1.5 rounded-md shadow-sm group-hover:bg-red-50 transition-colors">
-                View Resident Profile & AI Triage <ArrowRight className="w-3 h-3" />
+                {t('view_resident_profile_ai_triage')} <ArrowRight className="w-3 h-3" />
               </div>
             </div>
             <button 
@@ -781,7 +793,7 @@ export const DashboardContainer: React.FC = () => {
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <h2 className="text-lg font-medium text-slate-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-600" />
-                Shift Handover Report
+                {t('shift_handover_report')}
               </h2>
               <button
                 onClick={() => { setIsGeneratingHandover(false); setHandoverText(null); }}
@@ -794,7 +806,7 @@ export const DashboardContainer: React.FC = () => {
               {isGeneratingHandover ? (
                 <div className="flex flex-col items-center justify-center text-slate-500 h-40 space-y-4">
                   <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-                  <p className="text-sm">Synthesizing clinical handover data...</p>
+                  <p className="text-sm">{t('synthesizing_clinical_handover')}</p>
                 </div>
               ) : (
                 <div className="whitespace-pre-line text-sm text-slate-700 leading-relaxed font-sans">
@@ -808,18 +820,18 @@ export const DashboardContainer: React.FC = () => {
 
       {/* Simulator Tools */}
       <div className="fixed bottom-6 left-6 z-40 bg-white/90 backdrop-blur border border-slate-200 p-3 rounded-xl shadow-lg opacity-50 hover:opacity-100 transition-all flex flex-col gap-2">
-        <div className="text-xs font-bold text-slate-500 mb-1 px-1 uppercase tracking-wider">Simulator</div>
+        <div className="text-xs font-bold text-slate-500 mb-1 px-1 uppercase tracking-wider">{t('simulator')}</div>
         <button
           onClick={simulateFallAlert}
           className="text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-3 py-2 rounded-lg transition-colors text-left"
         >
-          🚨 Trigger IoT Fall Alert
+          {t('trigger_iot_fall_alert')}
         </button>
         <button
           onClick={() => setIsRnCoverageLost(prev => !prev)}
           className="text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-2 rounded-lg transition-colors text-left"
         >
-          ⚠️ Toggle RN Coverage Alert
+          {t('toggle_rn_coverage_alert')}
         </button>
       </div>
 

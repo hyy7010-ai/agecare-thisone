@@ -102,7 +102,7 @@ export function Dashboard({
                     {resident.name}
                   </h3>
                   <p className="text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider">
-                    Room {resident.room.replace('Room ', '')}
+                    {t('room_prefix')} {resident.room.replace('Room ', '').replace('房间号 ', '').replace('Kwarto ', '')}
                   </p>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export function Dashboard({
             <div className="grid grid-cols-3 gap-3 mt-2 pt-4 border-t border-slate-100">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-slate-500 uppercase font-medium tracking-wider">
-                  Bath
+                  {t('bath')}
                 </span>
                 <StatusBadge
                   status={
@@ -122,12 +122,12 @@ export function Dashboard({
                         ? "yellow"
                         : "red"
                   }
-                  label={resident.bathStatus}
+                  label={t(resident.bathStatus as any) || resident.bathStatus}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-slate-500 uppercase font-medium tracking-wider">
-                  Meal
+                  {t('meal')}
                 </span>
                 <StatusBadge
                   status={
@@ -137,12 +137,12 @@ export function Dashboard({
                         ? "yellow"
                         : "red"
                   }
-                  label={resident.mealStatus}
+                  label={t(resident.mealStatus as any) || resident.mealStatus}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-slate-500 uppercase font-medium tracking-wider">
-                  Toilet
+                  {t('toilet')}
                 </span>
                 <StatusBadge
                   status={
@@ -152,14 +152,14 @@ export function Dashboard({
                         ? "yellow"
                         : "red"
                   }
-                  label={resident.toiletStatus}
+                  label={t(resident.toiletStatus as any) || resident.toiletStatus}
                 />
               </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100/60">
               <div className="flex justify-between items-end mb-3">
-                <span className="text-sm text-slate-500 font-semibold tracking-wider uppercase">Care Minutes</span>
+                <span className="text-sm text-slate-500 font-semibold tracking-wider uppercase">{t('care_minutes')}</span>
                 <span className="font-bold text-slate-800 text-xl font-heading">
                   {resident.careMinutesToday} <span className="text-base text-slate-400 font-medium">/ {resident.careMinutesTarget}m</span>
                 </span>
@@ -184,13 +184,13 @@ export function Dashboard({
       {isCaregiver && (
         <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-200/60 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="bg-slate-50/50 px-8 py-6 border-b border-slate-100">
-            <h2 className="text-xl font-bold text-slate-800 font-heading tracking-tight">My Submitted Observations</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1">Track the status of your reported notes and photos</p>
+            <h2 className="text-xl font-bold text-slate-800 font-heading tracking-tight">{t('my_submitted_observations')}</h2>
+            <p className="text-sm text-slate-500 font-medium mt-1">{t('track_observation_status')}</p>
           </div>
           <div className="p-0">
             {pendingReviews.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-light text-sm">
-                You have no pending observations waiting for RN review.
+                {t('no_pending_observations')}
               </div>
             ) : (
               <ul className="divide-y divide-slate-100">
@@ -207,7 +207,7 @@ export function Dashboard({
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-sm font-medium shrink-0">
                       <Clock className="w-4 h-4" />
-                      Waiting RN Review
+                      {t('waiting_rn_review')}
                     </div>
                   </li>
                 ))}

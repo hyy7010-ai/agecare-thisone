@@ -311,17 +311,23 @@ export function ResidentProfile({
   const handleSaveCareNote = async () => {
     if (!careNoteDraft) return;
     try {
-      await addDoc(collection(db, "dailyCareNotes"), {
+      await addDoc(collection(db, "rnReviewQueue"), {
         residentId: resident.id,
-        content: careNoteDraft,
-        shift: "Current", // placeholder
-        createdBy: "System User",
-        timestamp: serverTimestamp(),
+        residentName: resident.name,
+        room: resident.room,
+        photoUrl: "",
+        aiResult: {
+          observationType: "care_note",
+          observation: careNoteDraft,
+          potentialRiskFlag: "",
+          suggestedCarePlan: nativeConfirmation || "",
+        },
+        timestamp: new Date().toISOString(),
       });
       setIsCareNoteSaved(true);
     } catch (e) {
-      console.error("Failed to save care note", e);
-      setCareNoteError("Failed to save care note.");
+      console.error("Failed to save care note to RN review queue", e);
+      setCareNoteError("Failed to submit care note for RN review.");
     }
   };
 
@@ -534,7 +540,7 @@ export function ResidentProfile({
         className="inline-flex items-center gap-3 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-all mb-8 px-5 py-2.5 rounded-xl font-medium shadow-sm active:scale-95"
       >
         <ArrowLeft className="w-5 h-5" />
-        Back to Dashboard
+        {t('back_to_dashboard')}
       </button>
 
       {/* Profile Header */}
@@ -557,7 +563,7 @@ export function ResidentProfile({
                 {resident.careMinutesToday}
               </div>
               <div className="text-xs font-normal text-slate-400 uppercase tracking-widest mt-1">
-                mins
+                {t('mins')}
               </div>
             </div>
             <div className="bg-white rounded-xl p-4 border border-slate-200 flex items-center justify-center min-w-[100px]">
@@ -577,11 +583,11 @@ export function ResidentProfile({
 
       {/* Medical History Section */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-8 p-6 sm:p-8">
-        <h2 className="text-xl font-medium tracking-tight text-slate-800 mb-4">Medical Profile</h2>
+        <h2 className="text-xl font-medium tracking-tight text-slate-800 mb-4">{t('medical_profile')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <Activity className="w-4 h-4" /> Past Medical History
+              <Activity className="w-4 h-4" /> {t('past_medical_history')}
             </h3>
             {resident.medicalHistory && resident.medicalHistory.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
@@ -590,12 +596,12 @@ export function ResidentProfile({
                 ))}
               </ul>
             ) : (
-              <p className="text-slate-600 text-sm italic">None recorded</p>
+              <p className="text-slate-600 text-sm italic">{t('none_recorded')}</p>
             )}
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4" /> Current Medications
+              <FileText className="w-4 h-4" /> {t('current_medications')}
             </h3>
             {resident.medications && resident.medications.length > 0 ? (
               <div className="space-y-2">
@@ -607,12 +613,12 @@ export function ResidentProfile({
                 ))}
               </div>
             ) : (
-              <p className="text-slate-600 text-sm italic">None recorded</p>
+              <p className="text-slate-600 text-sm italic">{t('none_recorded')}</p>
             )}
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" /> Allergies
+              <AlertTriangle className="w-4 h-4" /> {t('allergies')}
             </h3>
             {resident.allergies && resident.allergies.length > 0 ? (
               <div className="flex flex-wrap gap-2">
@@ -627,7 +633,7 @@ export function ResidentProfile({
                 ))}
               </div>
             ) : (
-              <p className="text-slate-600 text-sm italic">No recorded allergies</p>
+              <p className="text-slate-600 text-sm italic">{t('no_recorded_allergies')}</p>
             )}
           </div>
         </div>
@@ -638,7 +644,7 @@ export function ResidentProfile({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-medium tracking-tight text-slate-800 flex items-center gap-2">
-              Today's Summary
+              {t('todays_summary')}
             </h2>
             <button
               onClick={handleGenerateSummary}
@@ -648,13 +654,13 @@ export function ResidentProfile({
               {isGeneratingSummary ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : null}
-              <span className="hidden sm:inline">Generate </span>Today's Summary
+              <span className="hidden sm:inline">{t('generate')} </span>{t('todays_summary')}
             </button>
           </div>
 
           {summaryError && (
             <div className="mb-4 bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl text-sm">
-              <strong>Error: </strong> {summaryError}
+              <strong>{t('error')}: </strong> {summaryError}
             </div>
           )}
 
@@ -680,7 +686,7 @@ export function ResidentProfile({
               <div className="relative z-10">
                 <Loader2 className="w-8 h-8 text-teal-400 animate-spin mb-3 font-light mx-auto" />
                 <h3 className="text-md font-normal text-slate-100">
-                  Gemini is summarising today's records...
+                  {t('gemini_is_summarising')}
                 </h3>
               </div>
             )}
@@ -689,7 +695,7 @@ export function ResidentProfile({
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-4">
               <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="font-medium text-slate-800">
-                  Daily Wellness Summary
+                  {t('daily_wellness_summary')}
                 </h3>
                 <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
                   {new Date().toLocaleTimeString([], {
@@ -711,11 +717,11 @@ export function ResidentProfile({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-xl font-medium tracking-tight text-slate-800 flex items-center gap-2">
-              Family Update (Desensitized)
+              {t('family_update_desensitized')}
             </h2>
             <div className="flex items-center gap-1 mt-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 w-fit">
               <ShieldAlert className="w-3.5 h-3.5" />
-              Privacy-Preserving Mode Active (Privacy Act 1988 / APPs)
+              {t('privacy_preserving_mode_active')}
             </div>
           </div>
           <button
@@ -726,7 +732,7 @@ export function ResidentProfile({
             {isGeneratingFamilyUpdate ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : null}
-            <span className="hidden sm:inline">Generate </span>Family Update
+            <span className="hidden sm:inline">{t('generate')} </span>{t('family_update_desensitized')}
           </button>
         </div>
         
@@ -752,7 +758,7 @@ export function ResidentProfile({
               <div className="relative z-10">
                 <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4 mx-auto font-light" />
                 <h3 className="text-lg font-medium text-slate-100">
-                  Gemini is drafting a family-friendly update...
+                  {t('gemini_drafting_family_update')}
                 </h3>
               </div>
             )}
@@ -761,10 +767,10 @@ export function ResidentProfile({
           <div className="bg-white border border-indigo-200 rounded-2xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-4">
             <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center justify-between">
               <h3 className="font-medium text-indigo-900">
-                Draft Message
+                {t('draft_message')}
               </h3>
               <span className="text-xs font-medium text-indigo-700 bg-indigo-200 px-2 py-1 rounded">
-                Needs RN Approval
+                {t('needs_rn_approval')}
               </span>
             </div>
             <div className="p-6 text-sm text-slate-700 leading-relaxed font-light whitespace-pre-wrap">
@@ -787,15 +793,15 @@ export function ResidentProfile({
                 }`}
               >
                 {isFamilyUpdateSent ? (
-                  <><CheckCircle className="w-4 h-4" /> Approved & Sent to Family</>
+                  <><CheckCircle className="w-4 h-4" /> {t('approved_sent_to_family')}</>
                 ) : (
-                  <><CheckCircle className="w-4 h-4" /> RN Approve & Send to Family Portal</>
+                  <><CheckCircle className="w-4 h-4" /> {t('rn_approve_send_to_family')}</>
                 )}
               </button>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-500">Generate a desensitized summary of the resident's status today to share with their family members.</p>
+          <p className="text-sm text-slate-500">{t('generate_desensitized_summary_desc')}</p>
         )}
       </div>
 
@@ -805,9 +811,7 @@ export function ResidentProfile({
           <BodyDiagram
             selectedLocation={selectedBodyLocation}
             onLocationSelect={setSelectedBodyLocation}
-          />
-
-          <div
+          />          <div
             className={`bg-white border text-center rounded-2xl p-8 transition-all duration-300 ${
               !selectedBodyLocation
                 ? "border-slate-200 border-dashed bg-slate-50 opacity-80 hover:opacity-100"
@@ -820,12 +824,12 @@ export function ResidentProfile({
             onDrop={handleDrop}
           >
             <h2 className="text-xl font-normal text-slate-800 mb-2">
-              Record Observation
+              {t('record_observation')}
             </h2>
             <p className="text-slate-500 mb-8 text-sm font-light">
               {!selectedBodyLocation
-                ? "Select a location first, then add a photo (or proceed without location)."
-                : "Now take a photo, or drag and drop a picture for AI-assisted documentation."}
+                ? t('select_location_first')
+                : t('now_take_photo')}
             </p>
 
             <input
@@ -852,7 +856,7 @@ export function ResidentProfile({
                 <span
                   className={`font-normal text-sm ${!selectedBodyLocation ? "text-slate-500" : "text-teal-700"}`}
                 >
-                  Take Photo
+                  {t('take_photo_btn')}
                 </span>
               </button>
               <button
@@ -869,7 +873,7 @@ export function ResidentProfile({
                 <span
                   className={`font-normal text-sm ${!selectedBodyLocation ? "text-slate-500" : "text-teal-700"}`}
                 >
-                  Upload File
+                  {t('upload_file')}
                 </span>
               </button>
             </div>
@@ -886,7 +890,7 @@ export function ResidentProfile({
 
             {errorMsg && (
               <div className="mt-6 bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl text-sm text-left">
-                <strong>Error: </strong> {errorMsg}
+                <strong>{t('error')}: </strong> {errorMsg}
               </div>
             )}
           </div>
@@ -898,18 +902,17 @@ export function ResidentProfile({
             <div className="h-full border border-slate-200 rounded-2xl bg-white p-10 flex flex-col items-center justify-center text-center">
               <Loader2 className="w-10 h-10 text-teal-500 animate-spin mb-4 font-light" />
               <h3 className="text-lg font-normal text-slate-700">
-                Gemini is analyzing... (results usually appear within 10
-                seconds)
+                {t('gemini_analyzing')}
               </h3>
               <p className="text-slate-500 text-sm mt-2 font-light">
-                Processing the observation securely.
+                {t('processing_observation_securely')}
               </p>
             </div>
           ) : errorMsg ? (
             <div className="h-full border border-red-200 rounded-2xl bg-red-50 p-10 flex flex-col items-center justify-center text-center">
               <AlertTriangle className="w-10 h-10 text-red-500 mb-4" />
               <h3 className="text-lg font-normal text-red-700">
-                Analysis Failed
+                {t('analysis_failed')}
               </h3>
               <p className="text-red-600 text-sm mt-2 font-light">{errorMsg}</p>
             </div>
@@ -919,12 +922,12 @@ export function ResidentProfile({
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="w-5 h-5 text-teal-600" />
                   <h3 className="font-normal text-slate-800">
-                    AI Observation Note
+                    {t('ai_observation_note')}
                   </h3>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-normal uppercase tracking-wider bg-teal-100 text-teal-800 px-2 py-1 rounded">
-                    Draft
+                    {t('draft')}
                   </span>
                 </div>
               </div>
@@ -934,16 +937,16 @@ export function ResidentProfile({
                   <div className="bg-red-600 text-white p-4 rounded-xl flex gap-3 shadow-sm border border-red-700">
                     <ShieldAlert className="w-6 h-6 shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-sm">CRITICAL SYMPTOM DETECTED</h4>
+                      <h4 className="font-semibold text-sm">{t('critical_symptom_detected')}</h4>
                       <p className="text-xs text-red-100 mt-1">
-                        Bypassing standard AI workflow. Immediate RN Review or Code Blue required depending on severity.
+                        {t('critical_symptom_detected_desc')}
                       </p>
                     </div>
                   </div>
                 )}
                 <div>
                   <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                    Visual Observation
+                    {t('visual_observation')}
                   </span>
                   <p className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-700 leading-relaxed font-light">
                     {aiResult.observation}
@@ -955,7 +958,7 @@ export function ResidentProfile({
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                          Colour
+                          {t('colour')}
                         </span>
                         <p className="bg-slate-50 p-3 rounded-lg border border-slate-100 font-normal text-sm text-slate-700">
                           {aiResult.colour || "N/A"}
@@ -963,7 +966,7 @@ export function ResidentProfile({
                       </div>
                       <div>
                         <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                          Bristol Stool Type
+                          {t('bristol_stool_type')}
                         </span>
                         <p className="bg-slate-50 p-3 rounded-lg border border-slate-100 font-normal text-sm text-slate-700">
                           {aiResult.bristolStoolType || "N/A"}
@@ -972,7 +975,7 @@ export function ResidentProfile({
                     </div>
                     <div className="mt-4">
                       <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                        Potential Risk Flag
+                        {t('potential_risk_flag')}
                       </span>
                       <p className="bg-amber-50 text-amber-700 p-3 rounded-lg border border-amber-100 font-normal text-sm">
                         {aiResult.potentialRiskFlag}
@@ -983,7 +986,7 @@ export function ResidentProfile({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                        Size / Type Estimate
+                        {t('size_type_estimate')}
                       </span>
                       <p className="bg-slate-50 p-3 rounded-lg border border-slate-100 font-normal text-sm text-slate-700">
                         {aiResult.estimatedSizeOrType}
@@ -991,7 +994,7 @@ export function ResidentProfile({
                     </div>
                     <div>
                       <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                        Potential Risk Flag
+                        {t('potential_risk_flag')}
                       </span>
                       <p className="bg-amber-50 text-amber-700 p-3 rounded-lg border border-amber-100 font-normal text-sm">
                         {aiResult.potentialRiskFlag}
@@ -1003,7 +1006,7 @@ export function ResidentProfile({
                 {aiResult.observationType === "wound" && (
                   <div className="mt-4">
                     <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                      Location
+                      {t('location')}
                     </span>
                     <p className="bg-slate-50 p-3 rounded-lg border border-slate-100 font-normal text-sm text-slate-700">
                       {selectedBodyLocation || "Not specified"}
@@ -1014,7 +1017,7 @@ export function ResidentProfile({
                 {aiResult.suggestedCarePlan && (
                   <div className="mt-4">
                     <span className="block text-xs font-normal text-slate-400 uppercase mb-2">
-                      Suggested Temporary Care Plan (Pending RN)
+                      {t('suggested_care_plan')}
                     </span>
                     <div className="bg-indigo-50 text-indigo-800 p-4 rounded-xl border border-indigo-100 font-medium text-sm whitespace-pre-wrap leading-relaxed shadow-sm">
                       {aiResult.suggestedCarePlan}
@@ -1026,8 +1029,7 @@ export function ResidentProfile({
                   {renderAiDisclaimer()}
                   {isConfirmed ? (
                     <div className="bg-teal-50 text-teal-700 font-normal p-3 rounded-lg flex items-center justify-center gap-2 border border-teal-100">
-                      <CheckCircle className="w-4 h-4" /> Submitted for RN
-                      Review
+                      <CheckCircle className="w-4 h-4" /> {t('submitted_for_rn_review')}
                     </div>
                   ) : (
                     <button
@@ -1044,7 +1046,7 @@ export function ResidentProfile({
                       className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-normal rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      {t('submit')} for RN Review
+                      {t('submit_for_rn_review')}
                     </button>
                   )}
                 </div>
@@ -1056,10 +1058,10 @@ export function ResidentProfile({
                 <AlertTriangle className="w-5 h-5 text-slate-400" />
               </div>
               <h3 className="text-lg font-normal text-slate-600">
-                No active AI observation
+                {t('no_active_ai_observation')}
               </h3>
               <p className="text-slate-400 text-sm mt-1 max-w-xs font-light">
-                Upload a photo to see the automated clinical note draft here.
+                {t('upload_photo_instruction')}
               </p>
             </div>
           )}
@@ -1069,7 +1071,7 @@ export function ResidentProfile({
       {/* Daily Care Note Generator Section */}
       <div className="mt-8 border-t border-slate-200 pt-8">
         <h2 className="text-xl font-medium tracking-tight text-slate-800 mb-6 flex items-center gap-2">
-          Daily Care Note Generator
+          {t('daily_care_note_generator')}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -1077,7 +1079,7 @@ export function ResidentProfile({
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-500" />
-                Live Voice Clinical Notes
+                {t('live_voice_clinical_notes')}
               </h3>
               {speechSupported ? (
                 <button
@@ -1091,18 +1093,18 @@ export function ResidentProfile({
                   {isRecording ? (
                     <>
                       <div className="w-3 h-3 rounded-full bg-white animate-ping" />
-                      Listening in any language...
+                      {t('listening_in_any_language')}
                     </>
                   ) : (
                     <>
                       <Mic className="w-5 h-5" />
-                      Tap to Dictate Observation
+                      {t('tap_to_dictate_observation')}
                     </>
                   )}
                 </button>
               ) : (
                 <span className="text-sm font-medium text-slate-400 bg-slate-100 px-4 py-2 rounded-lg flex items-center gap-2">
-                  <MicOff className="w-4 h-4" /> Browser Voice Recording Not Supported
+                  <MicOff className="w-4 h-4" /> {t('voice_not_supported')}
                 </span>
               )}
             </div>
@@ -1112,11 +1114,11 @@ export function ResidentProfile({
                 <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
                   <Mic className="w-6 h-6 text-red-600 animate-bounce" />
                 </div>
-                <span>Recording... Speak your observation (e.g., in Chinese about a fall)</span>
+                <span>{t('recording_speak_instruction')}</span>
               </div>
             )}
 
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Or type manually:</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">{t('or_type_manually')}</div>
             <textarea
               className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium mb-4"
               placeholder="E.g. Resident had a fall in the bathroom and hit their head..."
@@ -1130,10 +1132,10 @@ export function ResidentProfile({
             >
               {isGeneratingCareNote ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Processing with Clinical AI...
+                  <Loader2 className="w-5 h-5 animate-spin" /> {t('processing_clinical_ai')}
                 </>
               ) : (
-                "Generate Clinical Note (Text Input)"
+                t('generate_clinical_note')
               )}
             </button>
           </div>
@@ -1163,7 +1165,7 @@ export function ResidentProfile({
                         <div className="w-10 h-10 rounded-full bg-indigo-500/30 flex items-center justify-center shrink-0">
                            {audioProcessingStage > 1 ? <CheckCircle className="w-5 h-5 text-indigo-400" /> : <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />}
                         </div>
-                        <div className="text-indigo-100 font-medium">Transcribing & translating audio...</div>
+                        <div className="text-indigo-100 font-medium">{t('transcribing_and_translating')}</div>
                      </div>
                      
                      {audioProcessingStage >= 2 && (
@@ -1171,7 +1173,7 @@ export function ResidentProfile({
                           <div className="w-10 h-10 rounded-full bg-teal-500/30 flex items-center justify-center shrink-0">
                              {audioProcessingStage > 2 ? <CheckCircle className="w-5 h-5 text-teal-400" /> : <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />}
                           </div>
-                          <div className="text-teal-100 font-medium">Generating clinical note...</div>
+                          <div className="text-teal-100 font-medium">{t('generating_clinical_note')}</div>
                        </div>
                      )}
                      
@@ -1180,7 +1182,7 @@ export function ResidentProfile({
                           <div className="w-10 h-10 rounded-full bg-amber-500/30 flex items-center justify-center shrink-0">
                              <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
                           </div>
-                          <div className="text-amber-100 font-medium">Checking SIRS compliance rules...</div>
+                          <div className="text-amber-100 font-medium">{t('checking_sirs_compliance')}</div>
                        </div>
                      )}
                   </div>
@@ -1188,7 +1190,7 @@ export function ResidentProfile({
                   <div className="relative z-10 text-center">
                     <Loader2 className="w-10 h-10 text-teal-400 animate-spin mb-4 font-light mx-auto" />
                     <h3 className="text-lg font-normal text-slate-100">
-                      Gemini is drafting the note...
+                      {t('gemini_drafting_note')}
                     </h3>
                   </div>
                 )}
@@ -1196,7 +1198,7 @@ export function ResidentProfile({
             ) : careNoteError ? (
               <div className="h-full border border-red-200 rounded-2xl bg-red-50 p-10 flex flex-col items-center justify-center text-center min-h-[200px]">
                 <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-                <h3 className="text-xl font-bold text-red-800 mb-2">Processing Failed</h3>
+                <h3 className="text-xl font-bold text-red-800 mb-2">{t('processing_failed')}</h3>
                 <p className="text-red-600 text-sm mb-6">{careNoteError}</p>
                 
                 <div className="flex gap-4">
@@ -1205,14 +1207,14 @@ export function ResidentProfile({
                        onClick={() => handleAudioSubmit(lastAudioBlob)}
                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                      >
-                        Retry Audio Analysis
+                        {t('retry_audio_analysis')}
                      </button>
                   )}
                   <button 
                     onClick={() => { setCareNoteError(null); setLastAudioBlob(null); setAudioProcessingStage(0); }}
                     className="px-6 py-2 bg-white border border-red-200 text-red-700 hover:bg-red-100 font-medium rounded-lg transition-colors"
                   >
-                    Dismiss
+                    {t('dismiss')}
                   </button>
                 </div>
               </div>
@@ -1220,10 +1222,10 @@ export function ResidentProfile({
               <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
                 <div className="bg-teal-50/50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                   <h3 className="font-medium text-slate-800">
-                    Generated Progress Note
+                    {t('generated_progress_note')}
                   </h3>
                   <span className="text-xs font-medium uppercase tracking-wider bg-teal-100 text-teal-800 px-2 py-1 rounded">
-                    Draft
+                    {t('draft')}
                   </span>
                 </div>
                 <div className="p-6">
@@ -1236,12 +1238,11 @@ export function ResidentProfile({
                     <div className="mt-4 bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-sm relative group">
                       <div className="flex items-center justify-between text-indigo-700 font-medium mb-1">
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" /> Native Translation Confirmation
+                          <CheckCircle className="w-4 h-4" /> {t('native_translation_confirmation')}
                         </div>
                         <button
                           onClick={() => {
                             const utterance = new SpeechSynthesisUtterance(nativeConfirmation);
-                            // Optional: Try to detect language or just let the browser use the default system voice for the detected language
                             window.speechSynthesis.speak(utterance);
                           }}
                           className="flex items-center gap-1.5 bg-white border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-md hover:bg-indigo-50 transition-colors shadow-sm"
@@ -1250,7 +1251,7 @@ export function ResidentProfile({
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M17.657 6.343a8 8 0 010 11.314M10.5 19.5L5 14.5H3a2 2 0 01-2-2v-3.5a2 2 0 012-2h2l5.5-5.5v16.5z" />
                           </svg>
-                          <span className="font-medium">Read back</span>
+                          <span className="font-medium">{t('read_back')}</span>
                         </button>
                       </div>
                       <p className="text-indigo-800 leading-relaxed mt-2">
@@ -1263,11 +1264,11 @@ export function ResidentProfile({
                     <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-xl text-sm">
                       <div className="flex items-center gap-2 text-amber-800 font-bold mb-2">
                         <AlertTriangle className="w-5 h-5" />
-                        Suggested Follow-ups (Not yet documented)
+                        {t('suggested_follow_ups')}
                       </div>
                       <ul className="list-disc list-inside text-amber-900 space-y-1">
                         {suggestedFollowUps.map((action, idx) => (
-                          <li key={idx}>{action}</li>
+                           <li key={idx}>{action}</li>
                         ))}
                       </ul>
                     </div>
@@ -1277,11 +1278,10 @@ export function ResidentProfile({
                     <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-xl">
                       <div className="flex items-center gap-2 text-red-700 font-bold mb-2">
                         <ShieldAlert className="w-5 h-5 animate-pulse" />
-                        SIRS Priority {sirsAssessment.priority} Detected
+                        {t('sirs_detected')}
                       </div>
                       <p className="text-red-800 text-sm mb-4">
-                        The AI detected a potential reportable incident ({sirsAssessment.category}). 
-                        You must log this to the Serious Incident Response Scheme.
+                        {t('sirs_detected_desc')}
                       </p>
                       {onLogSirs && (
                         <button
@@ -1289,7 +1289,7 @@ export function ResidentProfile({
                           className="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                           <ShieldAlert className="w-4 h-4" />
-                          Review & Submit SIRS Report
+                          {t('review_submit_sirs')}
                         </button>
                       )}
                     </div>
@@ -1297,8 +1297,7 @@ export function ResidentProfile({
 
                   {isCareNoteSaved ? (
                     <div className="mt-6 bg-teal-50 text-teal-700 font-medium p-3 rounded-xl flex items-center justify-center gap-2 border border-teal-100">
-                      <CheckCircle className="w-4 h-4" /> Saved to Resident
-                      Record
+                      <CheckCircle className="w-4 h-4" /> {t('saved_to_resident_record')}
                     </div>
                   ) : (
                     <button
@@ -1306,7 +1305,7 @@ export function ResidentProfile({
                       className="mt-6 w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      Save to Resident Record
+                      {t('save_to_resident_record')}
                     </button>
                   )}
                 </div>
@@ -1314,7 +1313,7 @@ export function ResidentProfile({
             ) : (
               <div className="h-full border border-slate-200 border-dashed rounded-2xl bg-slate-50 p-10 flex flex-col items-center justify-center text-center min-h-[200px]">
                 <p className="text-slate-400 text-sm font-light">
-                  The clinical progress note will appear here.
+                  {t('clinical_note_will_appear')}
                 </p>
               </div>
             )}
