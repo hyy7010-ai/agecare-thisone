@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -88,16 +89,6 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       }
 
 
-      // Convert buffer to base64 for Gemini
-      const fileData = {
-        inlineData: {
-          data: req.file.buffer.toString('base64'),
-          mimeType: req.file.mimetype,
-        },
-      };
-
-
-
       const prompt = `
         You are an AI assistant in an aged care facility. 
         First determine whether the image shows a "wound"/skin injury or "excrement" (stool/urine).
@@ -116,6 +107,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         - colour: The observed colour.
         - bristolStoolType: Type 1-7 based on the Bristol Stool Chart, or 'unclear'.
         - potentialRiskFlag: A concise description of POTENTIAL risk (e.g. GI bleeding).
+
+        CRITICAL LANGUAGE INSTRUCTION: The values for observation, estimatedSizeOrType, potentialRiskFlag, suggestedCarePlan, colour, and bristolStoolType MUST be written in the language corresponding to language code: ${language}. Only the keys must remain in English.
       `;
 
       const response = await generateWithRetry({
@@ -126,7 +119,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             { 
               inlineData: {
                 data: req.file.buffer.toString('base64'),
-                mimeType: req.file.mimetype,
+                mimeType: req.file.mimetype.includes('image/') ? req.file.mimetype : 'image/jpeg',
               }
             }
           ]
@@ -146,16 +139,27 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             },
             required: ["observationType", "observation", "potentialRiskFlag"]
           },
-          temperature: 0.2,
-          tools: [{ googleSearch: {} }]
+          temperature: 0.2
         }
       });
 
       let rawText = response.text || '';
       let parsedResult;
       try {
-        rawText = rawText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-        parsedResult = JSON.parse(rawText);
+        const jsonMatch = rawText.match(/\r?\n\`\`\`json\s*([\s\S]*?)\s*\`\`\`/g);
+        if (jsonMatch && jsonMatch.length > 0) {
+          const lastMatch = jsonMatch[jsonMatch.length - 1];
+          const innerJson = lastMatch.replace(/\`\`\`json/, '').replace(/\`\`\`/, '').trim();
+          parsedResult = JSON.parse(innerJson);
+        } else {
+          let cleaned = rawText.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`/g, '').trim();
+          const firstBrace = cleaned.indexOf('{');
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+          }
+          parsedResult = JSON.parse(cleaned);
+        }
       } catch (parseError) {
         console.error('JSON Parse Error:', parseError);
         console.error('Raw string:', rawText);
@@ -220,8 +224,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         - toiletStatus: "independent" if they used toilet themselves, "assisted" if helped, "pad-change" if pad changed
         If an ADL is not mentioned, omit the field.
 
-        CRITICAL LANGUAGE INSTRUCTION: The values for englishNote, suggestedFollowUps, and autofillReport fields MUST be written in the language corresponding to language code: ${language}. Only the keys must remain in English.
-        CRITICAL LANGUAGE INSTRUCTION: The values for incidentTitle, riskFlag, description, and suggestedActions MUST be written in the language corresponding to language code: ${language}. Only the keys must remain in English.
+        CRITICAL LANGUAGE INSTRUCTION: The values for suggestedFollowUps MUST be written in the language corresponding to language code: ${language}. The englishNote and autofillReport fields MUST always be written in professional English.
         Return your response in structured JSON format with these exact keys:
         - englishNote: string (the professional progress note in English)
         - nativeConfirmation: string (the translated confirmation in the carer's native language)
@@ -248,7 +251,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             { 
               inlineData: {
                 data: req.file.buffer.toString('base64'),
-                mimeType: req.file.mimetype,
+                mimeType: (req.file.mimetype.includes('audio/') || req.file.mimetype.includes('octet-stream')) ? 'audio/webm' : req.file.mimetype,
               }
             }
           ]
@@ -297,16 +300,28 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             },
             required: ["englishNote", "nativeConfirmation", "suggestedFollowUps"]
           },
-          tools: [{ googleSearch: {} }]
+          
         }
       });
 
       let rawText = response.text || '';
       let parsedResult;
       try {
-        rawText = rawText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-        parsedResult = JSON.parse(rawText);
-      } catch (e) {
+        const jsonMatch = rawText.match(/\`\`\`json[\s\S]*?\`\`\`/g);
+        if (jsonMatch && jsonMatch.length > 0) {
+          const lastMatch = jsonMatch[jsonMatch.length - 1];
+          const innerJson = lastMatch.replace(/\`\`\`json/, '').replace(/\`\`\`/, '').trim();
+          parsedResult = JSON.parse(innerJson);
+        } else {
+          let cleaned = rawText.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`/g, '').trim();
+          const firstBrace = cleaned.indexOf('{');
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+          }
+          parsedResult = JSON.parse(cleaned);
+        }
+      } catch (e: any) {
         parsedResult = { englishNote: rawText.replace(/[\*#]/g, '').trim(), nativeConfirmation: '' };
       }
 
@@ -368,8 +383,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         - confidenceScore: number (0 to 100, how confident are you in this classification based on the latest guidelines)
         - uncertaintyFlag: string (If confidence is < 90, explain what is unclear and why an RN needs to review. If confident, return an empty string)
 
-        CRITICAL FORMATTING INSTRUCTION: 
-        You MUST return ONLY valid JSON. Do NOT wrap your response in markdown code blocks (e.g., do not use \`\`\`json). Return just the raw JSON object.
+        CRITICAL FORMATTING INSTRUCTION:
+        You MUST output a detailed thought process about the current SIRS guidelines based on your search, and then AT THE VERY END, output exactly one JSON block wrapped in \`\`\`json ... \`\`\` with your final structured answer using the requested keys.
       `;
 
       const parts: any[] = [{ text: prompt }];
@@ -396,47 +411,48 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         });
       }
 
-      const response = await generateWithRetry({
-        model: 'gemini-3.5-flash',
-        contents: { parts },
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              isReportable: { type: Type.BOOLEAN },
-              category: { type: Type.STRING },
-              priority: { type: Type.NUMBER, nullable: true },
-              incidentTitle: { type: Type.STRING },
-              residentName: { type: Type.STRING },
-              confidenceScore: { type: Type.NUMBER },
-              uncertaintyFlag: { type: Type.STRING },
-              autofillReport: {
-                type: Type.OBJECT,
-                properties: {
-                  whatHappened: { type: Type.STRING },
-                  immediateSafetyActions: { type: Type.STRING },
-                  emergencyServicesNotified: { type: Type.BOOLEAN },
-                  familyNotified: { type: Type.BOOLEAN },
-                  gpNotified: { type: Type.BOOLEAN },
-                  regulatorNotification: { type: Type.STRING },
-                  preventiveActions: { type: Type.STRING }
-                },
-                required: ["whatHappened", "immediateSafetyActions", "emergencyServicesNotified", "familyNotified", "gpNotified", "regulatorNotification", "preventiveActions"]
-              }
-            },
-            required: ["isReportable", "category", "incidentTitle", "residentName", "autofillReport", "confidenceScore", "uncertaintyFlag"]
-          },
-          tools: [{ googleSearch: {} }],
-          temperature: 0.2
-        }
-      });
-
+      let response;
+      let usedSearch = true;
+      try {
+        response = await generateWithRetry({
+          model: 'gemini-3.5-flash',
+          contents: { parts },
+          config: {
+            temperature: 0.2,
+            tools: [{ googleSearch: {} }]
+          }
+        });
+      } catch (e: any) {
+        console.warn('SIRS API search failed (quota?), retrying without search...', e.message);
+        usedSearch = false;
+        response = await generateWithRetry({
+          model: 'gemini-3.5-flash',
+          contents: { parts },
+          config: {
+            temperature: 0.2
+          }
+        });
+      }
+      
       let rawText = response.text || '';
       let parsedResult;
       try {
-        rawText = rawText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-        parsedResult = JSON.parse(rawText);
+        
+        const jsonMatch = rawText.match(/\`\`\`json[\s\S]*?\`\`\`/g);
+        if (jsonMatch && jsonMatch.length > 0) {
+          const lastMatch = jsonMatch[jsonMatch.length - 1];
+          const innerJson = lastMatch.replace(/\`\`\`json/, '').replace(/\`\`\`/, '').trim();
+          parsedResult = JSON.parse(innerJson);
+        } else {
+          let cleaned = rawText.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`/g, '').trim();
+          const firstBrace = cleaned.indexOf('{');
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+          }
+          parsedResult = JSON.parse(cleaned);
+        }
+
       } catch (parseError) {
         console.error('JSON Parse Error:', parseError);
         console.error('Raw string:', rawText);
@@ -461,13 +477,17 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             }
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("Error extracting grounding metadata", e);
       }
       parsedResult.groundingSources = groundingSources;
 
       const gm = response.candidates?.[0]?.groundingMetadata;
       parsedResult.searchQueries = gm?.webSearchQueries || [];
+      if (!usedSearch) {
+        parsedResult.searchQueries = ["Search temporarily unavailable due to quota limit."];
+        parsedResult.groundingSources = [{ title: "Offline Fallback", uri: "#" }];
+      }
 
       res.json({ result: parsedResult });
     } catch (error: any) {
@@ -511,8 +531,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
         Casual Input: "${input}"
         
-        CRITICAL LANGUAGE INSTRUCTION: The values for englishNote, suggestedFollowUps, and autofillReport fields MUST be written in the language corresponding to language code: ${language}. Only the keys must remain in English.
-        CRITICAL LANGUAGE INSTRUCTION: The values for incidentTitle, riskFlag, description, and suggestedActions MUST be written in the language corresponding to language code: ${language}. Only the keys must remain in English.
+        CRITICAL LANGUAGE INSTRUCTION: The values for suggestedFollowUps MUST be written in the language corresponding to language code: ${language}. The englishNote and autofillReport fields MUST always be written in professional English.
         Return your response in structured JSON format with these exact keys:
         - englishNote: string (the professional progress note in English, plain text without markdown)
         - nativeConfirmation: string (the translated confirmation in the carer's native language, or empty if English)
@@ -540,7 +559,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             },
             required: ["englishNote", "nativeConfirmation"]
           },
-          tools: [{ googleSearch: {} }]
+          
         }
       });
 
@@ -549,7 +568,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       try {
         rawText = rawText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
         parsedResult = JSON.parse(rawText);
-      } catch (e) {
+      } catch (e: any) {
         parsedResult = { englishNote: rawText.replace(/[\*#]/g, '').trim(), nativeConfirmation: '' };
       }
 

@@ -59,6 +59,7 @@ const translations = {
     overdue: "Overdue",
     eaten: "Eaten",
     assisted: "Assisted",
+    "pad-change": "Pad Changed",
     missed: "Missed",
     independent: "Independent",
     dependent: "Dependent",
@@ -163,6 +164,10 @@ const translations = {
     shift_word: "shift"
   },
   zh: {
+    quick_log: "快速记录",
+    timeline: "时间线",
+    no_recent_activity: "无近期活动。",
+    blood_glucose: "血糖",
     take_photo: "拍照",
     submit: "提交",
     confirm: "确认",
@@ -318,6 +323,10 @@ const translations = {
     shift_word: "班次"
   },
   tl: {
+    quick_log: "Mabilis na Tala",
+    timeline: "Timeline",
+    no_recent_activity: "Walang kamakailang aktibidad.",
+    blood_glucose: "Blood Glucose",
     take_photo: "Kumuha ng Litrato",
     submit: "Isumite",
     confirm: "Kumpirmahin",
@@ -516,7 +525,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   const toggleSimulateOffline = () => setSimulateOffline(prev => !prev);
 
-  const t = (key: keyof typeof translations.en) => translations[lang][key] || translations.en[key];
+  const t = (key: keyof typeof translations.en) => (translations[lang] as any)[key] || translations.en[key];
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t, isOnline, toggleSimulateOffline }}>

@@ -41,7 +41,7 @@ export function CareTaskModal({ resident, taskType, onClose, onSave }: CareTaskM
       options: [
         { value: "independent", label: t('independent') || "Independent", color: "green" },
         { value: "assisted", label: t('assisted') || "Assisted", color: "yellow" },
-        { value: "pad-change", label: t('pad-change') || "Pad Changed", color: "red" },
+        { value: "pad-change", label: t('pad-change' as any) || "Pad Changed", color: "red" },
       ]
     },
     blood_glucose: {

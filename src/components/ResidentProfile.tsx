@@ -44,7 +44,8 @@ export function ResidentProfile({
   onQuickLog,
   timelineEvents = [],
 }: ResidentProfileProps) {
-  const { t, language } = useLanguage();
+  const { t, lang } = useLanguage();
+  const language = lang;
   const [isUploading, setIsUploading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AIObservationResult | null>(null);
@@ -629,7 +630,7 @@ export function ResidentProfile({
                 className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors gap-2 group"
               >
                 <span className="text-sm font-medium text-slate-600 group-hover:text-indigo-700 uppercase tracking-wider">
-                  {t(task) || task.replace("_", " ")}
+                  {t(task as any) || task.replace("_", " ")}
                 </span>
               </button>
             ))}

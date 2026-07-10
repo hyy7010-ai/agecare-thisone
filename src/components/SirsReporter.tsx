@@ -36,7 +36,7 @@ interface SirsReporterProps {
 
 export function SirsReporter({ onCancel, onSubmit, initialDescription = "", initialSirsResult = null, residentName = "Unknown" }: SirsReporterProps) {
   const { currentUser } = useAuth();
-  const { isOnline, language } = useLanguage();
+  const { isOnline, lang: language } = useLanguage();
   const [description, setDescription] = useState(initialDescription);
   const [isProcessing, setIsProcessing] = useState(false);
   const [scrubbingStatus, setScrubbingStatus] = useState<string | null>(null);
