@@ -251,7 +251,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
             { 
               inlineData: {
                 data: req.file.buffer.toString('base64'),
-                mimeType: (req.file.mimetype.includes('audio/') || req.file.mimetype.includes('octet-stream')) ? 'audio/webm' : req.file.mimetype,
+                mimeType: (req.file.mimetype.includes('mp4') || req.file.mimetype.includes('m4a')) ? 'audio/mp4' : (req.file.mimetype.includes('audio/') || req.file.mimetype.includes('octet-stream')) ? 'audio/webm' : req.file.mimetype,
               }
             }
           ]
@@ -391,10 +391,10 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
       if (audioBase64) {
         // Strip data URI prefix if present
-        const base64Data = audioBase64.replace(/^data:audio\/\w+;base64,/, "");
+        const base64Data = audioBase64.replace(/^data:[^,]+,/, "");
         parts.push({
           inlineData: {
-            mimeType: "audio/webm",
+            mimeType: audioBase64.includes("mp4") || audioBase64.includes("m4a") ? "audio/mp4" : "audio/webm",
             data: base64Data
           }
         });
