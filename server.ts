@@ -24,7 +24,9 @@ function sanitizeErrorMessage(message: string): string {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Hosting platforms (Cloud Run, Render, Railway, Fly) inject the port via env.
+  // Falling back to 3000 keeps local dev unchanged.
+  const PORT = Number(process.env.PORT) || 3000;
   
   app.use(express.json({ limit: '25mb' }));
 
