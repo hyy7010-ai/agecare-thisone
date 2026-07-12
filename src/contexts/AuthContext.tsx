@@ -163,8 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           try {
             const res = await signInAnonymously(auth);
             user = res.user;
-          } catch (anonErr) {
-            console.warn("Anonymous fallback failed:", anonErr.code, anonErr.message);
+          } catch (anonErr: any) {
+            console.warn("Anonymous fallback failed:", anonErr?.code, anonErr?.message);
           }
         }
       }

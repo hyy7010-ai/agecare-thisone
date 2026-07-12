@@ -160,11 +160,12 @@ export function subscribeResidents(callback: (residents: FirestoreResident[]) =>
       callback(residents);
     },
     (error) => {
-      try {
-        handleFirestoreError(error, OperationType.LIST, COLLECTION_NAME);
-      } catch (e: any) {
-        if (onError) onError(e);
-      }
+      // Always surface subscription errors so the UI can stop its loading state
+      // and fall back to demo data. handleFirestoreError swallows permission
+      // errors when signed out (demo mode uses local auth, so currentUser is
+      // null), which previously left the dashboard spinner stuck forever.
+      console.warn("subscribeResidents error:", (error as Error)?.message);
+      if (onError) onError(error as unknown as Error);
     }
   );
 }

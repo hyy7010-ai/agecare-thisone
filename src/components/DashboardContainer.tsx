@@ -20,6 +20,7 @@ import {
 } from "../types";
 import { db } from "../lib/firebase";
 import { subscribeResidents, seedResidentsIfEmpty, FirestoreResident, updateBasicCareTask, updateCareMinutes, updateAdlStatuses } from "../lib/residents";
+import { mockResidents } from "../data";
 import {
   collection,
   onSnapshot,
@@ -243,10 +244,16 @@ export const DashboardContainer: React.FC = () => {
             medications
           };
         });
-        setResidents(mapped);
+        // If Firestore is reachable but empty (seeding was denied), use the mock
+        // roster so the demo always has residents to show.
+        setResidents(mapped.length > 0 ? mapped : mockResidents);
         setIsLoading(false);
       }, (error) => {
         console.warn("Error fetching residents: ", error);
+        // Demo/offline fallback: if Firestore is unreachable or denies access
+        // (demo login is not a real Firebase session), show the mock roster so
+        // the dashboard is never stuck on the loading spinner.
+        setResidents((prev) => (prev.length > 0 ? prev : mockResidents));
         setIsLoading(false);
       });
 

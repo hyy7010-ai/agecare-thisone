@@ -333,7 +333,7 @@ export function ResidentProfile({
       }));
       
       await new Promise(r => setTimeout(r, 600));
-      setScrubbingStatus('Encrypting payload for AI transmission...');
+      setScrubbingStatus('Preparing de-identified payload...');
 
       await new Promise(r => setTimeout(r, 600));
       setScrubbingStatus(null);
@@ -341,7 +341,7 @@ export function ResidentProfile({
       const response = await fetch("/api/shift-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ events: scrubbedEvents, residentName: resident.name, language }),
+        body: JSON.stringify({ events: scrubbedEvents, residentName: `Resident (${resident.room})`, language }),
       });
 
       const text = await response.text();
@@ -419,7 +419,7 @@ export function ResidentProfile({
       const scrubbedNotes = scrubPII(rawNotes, resident.name);
       
       await new Promise(r => setTimeout(r, 800));
-      setScrubbingStatus('Encrypting payload for AI transmission...');
+      setScrubbingStatus('Preparing de-identified payload...');
       
       await new Promise(r => setTimeout(r, 800));
       setScrubbingStatus(null);
@@ -511,7 +511,7 @@ export function ResidentProfile({
       const scrubbedInput = scrubPII(careNoteInput, resident.name);
       
       await new Promise(r => setTimeout(r, 600));
-      setScrubbingStatus('Encrypting payload for AI transmission...');
+      setScrubbingStatus('Preparing de-identified payload...');
 
       await new Promise(r => setTimeout(r, 600));
       setScrubbingStatus(null);
