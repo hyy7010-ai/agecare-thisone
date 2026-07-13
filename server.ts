@@ -8,6 +8,27 @@ import multer from 'multer';
 // Set up Multer for handling file uploads (in memory)
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Australian aged care documentation conventions injected into note-generation
+// prompts. A generic model can pick clinically wrong or non-local wording when
+// translating casual multilingual input; this constrains terminology and, most
+// importantly, forbids upgrading a lay observation into a definitive diagnosis.
+const AU_AGED_CARE_TERMINOLOGY = `
+AUSTRALIAN AGED CARE TERMINOLOGY & CONVENTIONS (follow strictly):
+- Use Australian aged care terms: "resident" (never "patient"), "progress note",
+  "RN" (Registered Nurse), "EN" (Enrolled Nurse), "AIN"/"PCA" (care worker),
+  "ADLs" (Activities of Daily Living), "PRN" (as required), "BD"/"TDS"/"mane"/"nocte"
+  for medication frequency, "obs" (observations).
+- Describe skin findings observationally, do NOT diagnose: write "localised
+  erythema" / "area of redness", "skin tear", "possible pressure area" — never
+  assert "pressure injury stage X", "infection", "cellulitis" or any diagnosis
+  the carer did not state. Flag for RN assessment instead.
+- Nutrition: quantify intake as a percentage of the meal when stated (e.g.
+  "consumed approximately 50% of lunch"); "refused"/"declined" only if stated.
+- Continence: "continent", "incontinent", "assisted to toilet", "pad change".
+- Keep it objective and factual; escalate uncertainty to the RN rather than
+  guessing. When a single source term maps to several English clinical terms,
+  choose the most conservative, least diagnostic option.`;
+
 function sanitizeErrorMessage(message: string): string {
   const lowercase = String(message || '').toLowerCase();
   if (
@@ -515,7 +536,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       const prompt = `
         You are an expert aged care documentation assistant in Australia.
         Transform the following casual carer note into a professional English Progress Note suitable for Australian aged care documentation, aligned with the Strengthened Aged Care Quality Standards.
-        
+        ${AU_AGED_CARE_TERMINOLOGY}
+
         Guidelines:
         - Use clear, professional clinical language.
         - Extract and structure key activities (e.g. mobility, hygiene, nutrition, mood/behaviour) where present.
@@ -596,7 +618,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       const prompt = `
         You are an Australian aged care documentation assistant.
         Your task is to generate an end-of-shift progress note based on the provided events, aligned with the Strengthened Aged Care Quality Standards.
-        
+        ${AU_AGED_CARE_TERMINOLOGY}
+
         Guidelines:
         - Only use the facts from the provided events. DO NOT invent or assume any unrecorded facts, vitals, or activities.
         - Group the summary logically by ADL categories (e.g., nutrition, hygiene, continence, mobility, observations).
