@@ -14,6 +14,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 // importantly, forbids upgrading a lay observation into a definitive diagnosis.
 const AU_AGED_CARE_TERMINOLOGY = `
 AUSTRALIAN AGED CARE TERMINOLOGY & CONVENTIONS (follow strictly):
+- SPELLING: use Australian/British English spelling everywhere. "-ise" not "-ize"
+  (localised, mobilised, stabilised), "-our" not "-or" (behaviour, colour,
+  discolouration), and "oedema" (not edema), "faeces" (not feces), "diarrhoea"
+  (not diarrhea), "haematoma" (not hematoma), "catheterise".
+- Prefer clinical Australian terms over lay words where appropriate:
+  "oedema" for swelling, "mobilise"/"ambulate with assistance" for walking with
+  help, "bowel motion" (not "bowel movement"), "paracetamol" (not acetaminophen).
 - Use Australian aged care terms: "resident" (never "patient"), "progress note",
   "RN" (Registered Nurse), "EN" (Enrolled Nurse), "AIN"/"PCA" (care worker),
   "ADLs" (Activities of Daily Living), "PRN" (as required), "BD"/"TDS"/"mane"/"nocte"
