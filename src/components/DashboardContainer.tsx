@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ShieldAlert, Activity, Users, Bell, LogOut, Loader2, FileText, X, Globe, WifiOff, ArrowRight } from "lucide-react";
 import { Dashboard } from "./Dashboard";
 import { ResidentProfile } from "./ResidentProfile";
@@ -21,6 +21,7 @@ import {
 import { db } from "../lib/firebase";
 import { subscribeResidents, seedResidentsIfEmpty, FirestoreResident, updateBasicCareTask, updateCareMinutes, updateAdlStatuses } from "../lib/residents";
 import { mockResidents } from "../data";
+import { submitReview, getLocalReviews, removeLocalReview, subscribeLocalReviews } from "../lib/localReviewQueue";
 import {
   collection,
   onSnapshot,
@@ -51,6 +52,9 @@ export const DashboardContainer: React.FC = () => {
     null,
   );
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
+  // Holds the latest Firestore reviews so we can merge them with the local demo
+  // queue whenever either source changes.
+  const firestoreReviewsRef = useRef<PendingReview[]>([]);
   const [residents, setResidents] = useState<Resident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -160,6 +164,7 @@ export const DashboardContainer: React.FC = () => {
     let unsubResidents: () => void = () => {};
     let unsubReviews: () => void = () => {};
     let unsubSirsEvents: () => void = () => {};
+    let unsubLocalReviews: () => void = () => {};
 
     try {
       if (!db) {
@@ -257,6 +262,18 @@ export const DashboardContainer: React.FC = () => {
         setIsLoading(false);
       });
 
+      const mergeReviews = () => {
+        const merged = [...firestoreReviewsRef.current, ...(getLocalReviews() as unknown as PendingReview[])];
+        merged.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
+        setPendingReviews(merged);
+      };
+      // Keep the RN queue in sync with the local demo fallback too.
+      unsubLocalReviews = subscribeLocalReviews(() => mergeReviews());
+      mergeReviews(); // seed from local immediately (demo cross-role handoff)
+
       unsubReviews = onSnapshot(
         collection(db, "rnReviewQueue"),
         (snapshot) => {
@@ -264,14 +281,13 @@ export const DashboardContainer: React.FC = () => {
           snapshot.forEach((doc) => {
             data.push({ id: doc.id, ...doc.data() } as PendingReview);
           });
-          data.sort(
-            (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-          );
-          setPendingReviews(data);
+          firestoreReviewsRef.current = data;
+          mergeReviews();
         },
         (error) => {
           console.warn("Error fetching reviews: ", error);
+          firestoreReviewsRef.current = [];
+          mergeReviews();
         },
       );
     } catch (e) {
@@ -283,6 +299,7 @@ export const DashboardContainer: React.FC = () => {
       unsubResidents();
       unsubReviews();
       unsubSirsEvents();
+      unsubLocalReviews();
     };
   }, []);
 
@@ -323,18 +340,15 @@ export const DashboardContainer: React.FC = () => {
     const resident = residents.find((r) => r.id === residentId);
     if (!resident) return;
 
-    try {
-      await addDoc(collection(db, "rnReviewQueue"), {
-        residentId,
-        residentName: resident.name,
-        room: resident.room,
-        photoUrl,
-        aiResult,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (e) {
-      console.error("Failed to add pending review", e);
-    }
+    const reviewPayload = {
+      residentId,
+      residentName: resident.name,
+      room: resident.room,
+      photoUrl,
+      aiResult,
+      timestamp: new Date().toISOString(),
+    };
+    await submitReview(reviewPayload);
   };
 
   const removePendingReview = async (id: string) => {
@@ -384,6 +398,12 @@ export const DashboardContainer: React.FC = () => {
       } catch (e) {
         console.error("Failed to move review to database", e);
       }
+    }
+    // Local demo-queue items carry a synthetic "local-" id; remove those from
+    // localStorage. Real Firestore docs are deleted below.
+    if (id.startsWith("local-")) {
+      removeLocalReview(id);
+      return;
     }
     try {
       await deleteDoc(doc(db, "rnReviewQueue", id));

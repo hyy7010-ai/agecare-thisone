@@ -18,6 +18,7 @@ import { db } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useLanguage } from "../contexts/LanguageContext";
 import { scrubPII } from "../lib/piiScrubber";
+import { submitReview } from "../lib/localReviewQueue";
 import { logAuditAction } from "../lib/audit";
 import { useAuth } from "../contexts/AuthContext";
 import { CountdownTimer } from "./CountdownTimer";
@@ -383,7 +384,7 @@ export function ResidentProfile({
         details: `Submitted AI shift summary for resident ${resident.id} for RN review`,
         resourceId: resident.id
       });
-      await addDoc(collection(db, "rnReviewQueue"), {
+      const shiftSummaryPayload = {
         residentId: resident.id,
         residentName: resident.name,
         room: resident.room,
@@ -395,7 +396,8 @@ export function ResidentProfile({
           suggestedCarePlan: shiftSummaryNativeConfirmation || "",
         },
         timestamp: new Date().toISOString(),
-      });
+      };
+      await submitReview(shiftSummaryPayload);
       setIsShiftSummarySaved(true);
     } catch (e) {
       console.error("Failed to save shift summary to RN review queue", e);
@@ -474,7 +476,7 @@ export function ResidentProfile({
         details: `Submitted AI care note for resident ${resident.id} for RN review`,
         resourceId: resident.id
       });
-      await addDoc(collection(db, "rnReviewQueue"), {
+      const careNotePayload = {
         residentId: resident.id,
         residentName: resident.name,
         room: resident.room,
@@ -486,7 +488,8 @@ export function ResidentProfile({
           suggestedCarePlan: nativeConfirmation || "",
         },
         timestamp: new Date().toISOString(),
-      });
+      };
+      await submitReview(careNotePayload);
       setIsCareNoteSaved(true);
     } catch (e) {
       console.error("Failed to save care note to RN review queue", e);
