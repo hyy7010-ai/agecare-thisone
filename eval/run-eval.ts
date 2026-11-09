@@ -33,7 +33,10 @@ function inventedNumbers(source: string, note: string): string[] {
   for (const ch of source) if (toArabic[ch]) src.add(toArabic[ch]);
   if (/half|一半|半/.test(source)) src.add("50");
   // Ignore the minutes part of clock times (07:00 from "seven o'clock") and zero.
-  const noteNums = (note.replace(/(\d{1,2}):(\d{2})/g, (_m, h) => h).match(/\d+/g) || []).filter((n) => Number(n) !== 0);
+  const noteNums = (note
+    .replace(/(\d{1,2}):(\d{2})/g, (_m, h) => h)
+    .replace(/\b([01]\d|2[0-3])([0-5]\d)\b/g, (_m, h) => String(Number(h))) // 24-hour clock, e.g. 0300 = 3am
+    .match(/\d+/g) || []).filter((n) => Number(n) !== 0);
   return noteNums.filter((n) => !src.has(n) && !src.has(String(Number(n))));
 }
 

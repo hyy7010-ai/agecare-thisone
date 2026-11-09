@@ -7,13 +7,13 @@
       "mustReportFinal": "6/6 (100%)",
       "mustReportModelOnly": "6/6 (100%)",
       "checkSurfacedFinal": "8/8 (100%)",
-      "checkSurfacedModelOnly": "2/8 (25%)",
+      "checkSurfacedModelOnly": "4/8 (50%)",
       "routineFalseAlarms": "0/12 (0%)",
       "endedAtHumanGate": "26/26 (100%)",
       "notesWithInventedNumbers": "0/26 (0%)",
       "notesFlaggedByVerifier": "1/26 (4%)",
       "identifierLeaks": 0,
-      "avgSeconds": 26.9,
+      "avgSeconds": 10.3,
       "avgAgentSteps": 4.1,
       "stepsEnforcedByOrchestrator": 0
     },
@@ -29,8 +29,8 @@
       "notesWithInventedNumbers": "0/26 (0%)",
       "notesFlaggedByVerifier": "0/26 (0%)",
       "identifierLeaks": 0,
-      "avgSeconds": 23.9,
-      "avgAgentSteps": 4,
+      "avgSeconds": 9.9,
+      "avgAgentSteps": 4.1,
       "stepsEnforcedByOrchestrator": 0
     }
   },
@@ -56,8 +56,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "At 07:00, resident fell in the bathroom and struck her head. Minor bleeding was noted on her forehead. Carer assisted resident to sit on a chair and applied pressure with gauze.",
-      "seconds": 28.9
+      "englishNote": "At 07:00, the resident fell in the bathroom and struck her head, resulting in minor bleeding on her forehead. The carer assisted her to a chair and applied pressure to the area with gauze.",
+      "seconds": 11.2
     },
     {
       "id": "zh-02",
@@ -80,8 +80,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half of their lunch, stating they had no appetite. Resident slept for two hours in the afternoon.",
-      "seconds": 22.1
+      "englishNote": "Resident ate only half of their lunch, reporting a lack of appetite. Resident slept for two hours in the afternoon.",
+      "seconds": 9.5
     },
     {
       "id": "zh-03",
@@ -99,13 +99,13 @@
       "surfaced": true,
       "modelSurfaced": false,
       "endedAtHumanGate": true,
-      "agentSteps": 6,
+      "agentSteps": 7,
       "enforcedSteps": 0,
-      "verifierFlags": 2,
+      "verifierFlags": 1,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was found sitting on the floor after slipping from the bed. Resident reported severe pain in the right wrist, and swelling was observed on the right wrist.",
-      "seconds": 52.1
+      "englishNote": "Resident slid from bed to the floor and was found sitting on the floor. Resident reported severe pain in the right wrist, and slight swelling was observed.",
+      "seconds": 19.4
     },
     {
       "id": "zh-04",
@@ -128,8 +128,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident showered today and attended to toileting independently. Resident appeared to be in good spirits and participated in a video call with family.",
-      "seconds": 19.7
+      "englishNote": "Resident showered today and used the toilet independently. Resident appeared in a good mood and participated in a video chat with family.",
+      "seconds": 9.2
     },
     {
       "id": "zh-05",
@@ -152,8 +152,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident's daughter called via telephone to inquire about the resident's recent meal intake. Resident consumed all of her breakfast.",
-      "seconds": 21.2
+      "englishNote": "Resident's daughter called asking about her recent dietary intake. Resident consumed all of her breakfast.",
+      "seconds": 10.1
     },
     {
       "id": "yue-01",
@@ -176,8 +176,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "This morning, the resident fell in the corridor and struck their head. Swelling was observed on the back of the resident's head, and the resident reported feeling dizzy.",
-      "seconds": 24.1
+      "englishNote": "Resident fell in the hallway this morning and struck his head. Swelling noted on the back of his head. Resident reported feeling dizzy.",
+      "seconds": 10.7
     },
     {
       "id": "yue-02",
@@ -200,8 +200,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half a bowl of porridge today. Carer assisted resident to the toilet, during which the resident reported experiencing knee pain.",
-      "seconds": 24.4
+      "englishNote": "Resident consumed half a bowl of porridge. Assisted resident to the toilet, during which resident reported knee pain.",
+      "seconds": 10.4
     },
     {
       "id": "yue-03",
@@ -224,8 +224,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident did not eat lunch, stating they were not hungry. Staff will attempt to offer a meal again later.",
-      "seconds": 27.2
+      "englishNote": "The resident declined lunch, stating they were not hungry. Staff will re-offer food later.",
+      "seconds": 10
     },
     {
       "id": "yue-04",
@@ -248,8 +248,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Ho's son called her at [PHONE_REDACTED]. Resident appeared to be in good spirits today.",
-      "seconds": 23.9
+      "englishNote": "Resident Ho was in good spirits today. Her son called her.",
+      "seconds": 9.4
     },
     {
       "id": "hk-01",
@@ -272,8 +272,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Mr. Cheung experienced a fall in his room during the early morning. A bleeding wound was noted on his arm, and gauze dressing was applied.",
-      "seconds": 102.6
+      "englishNote": "Resident Mr. Cheung had a fall in his room during the early hours of the morning. There was a bleeding wound on his arm, which has been dressed with gauze.",
+      "seconds": 10.1
     },
     {
       "id": "hk-02",
@@ -297,7 +297,7 @@
       "inventedNumbers": [],
       "rawDigitsLeft": false,
       "englishNote": "Resident Mrs. Lam finished her breakfast today and participated in a singing activity in the afternoon.",
-      "seconds": 18.9
+      "seconds": 8.9
     },
     {
       "id": "en-01",
@@ -305,23 +305,23 @@
       "language": "en",
       "note": "found on floor + head strike",
       "expect": "check",
-      "finalPriority": null,
-      "modelOnlyPriority": null,
-      "rnMustCheck": true,
+      "finalPriority": 1,
+      "modelOnlyPriority": 1,
+      "rnMustCheck": false,
       "ruleMustReport": false,
       "ruleMustCheck": true,
-      "finalReport": false,
-      "modelReport": false,
+      "finalReport": true,
+      "modelReport": true,
       "surfaced": true,
-      "modelSurfaced": false,
+      "modelSurfaced": true,
       "endedAtHumanGate": true,
       "agentSteps": 4,
       "enforcedSteps": 0,
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "At 03:00, resident was found on the floor next to his bed. Resident reported hitting his head on the bedside table. A small cut was observed above his eyebrow.",
-      "seconds": 21.1
+      "englishNote": "At 0300, resident was found lying on the floor next to his bed. Resident reported striking his head on the bedside table. A small laceration was observed above his eyebrow.",
+      "seconds": 9.9
     },
     {
       "id": "en-02",
@@ -344,8 +344,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Mrs Brown refused lunch today. Resident appeared quiet but settled. Encouraged fluids.",
-      "seconds": 19.8
+      "englishNote": "Mrs Brown refused her lunch today. She appeared quiet but settled. Fluid intake was encouraged.",
+      "seconds": 8.5
     },
     {
       "id": "en-03",
@@ -368,8 +368,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident slipped in the hallway. No visible injuries were noted. Resident was assisted back to a chair.",
-      "seconds": 21.2
+      "englishNote": "Resident slipped in the hallway. No injuries were observed. Resident was assisted back to their chair.",
+      "seconds": 9.1
     },
     {
       "id": "en-04",
@@ -392,8 +392,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was found unresponsive in bed this morning and passed away. The event was noted as unexpected.",
-      "seconds": 21.2
+      "englishNote": "Resident was found unresponsive in bed this morning and passed away. Death was reported as unexpected.",
+      "seconds": 9.4
     },
     {
       "id": "en-05",
@@ -416,8 +416,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Carer reported that another staff member struck the resident on the arm during shower care. Resident was observed crying.",
-      "seconds": 22.4
+      "englishNote": "Resident was observed crying following an alleged incident where another staff member struck her on the arm during personal care in the shower.",
+      "seconds": 9.7
     },
     {
       "id": "en-06",
@@ -440,8 +440,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Assisted resident (Mr White) with a shower. Skin observed to be intact. Resident consumed all of his dinner.",
-      "seconds": 18.4
+      "englishNote": "Assisted resident with a shower. Skin was observed to be intact. Resident consumed all of his dinner.",
+      "seconds": 9.1
     },
     {
       "id": "tl-01",
@@ -449,23 +449,23 @@
       "language": "tl",
       "note": "fall + head strike, Tagalog",
       "expect": "check",
-      "finalPriority": null,
-      "modelOnlyPriority": null,
-      "rnMustCheck": true,
+      "finalPriority": 1,
+      "modelOnlyPriority": 1,
+      "rnMustCheck": false,
       "ruleMustReport": false,
       "ruleMustCheck": true,
-      "finalReport": false,
-      "modelReport": false,
+      "finalReport": true,
+      "modelReport": true,
       "surfaced": true,
-      "modelSurfaced": false,
+      "modelSurfaced": true,
       "endedAtHumanGate": true,
       "agentSteps": 4,
       "enforcedSteps": 0,
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident fell in the bathroom this morning. Head strike reported with a small amount of bleeding observed.",
-      "seconds": 22.2
+      "englishNote": "Lola Maria had a fall in the bathroom this morning. She struck her head, and there was a small amount of bleeding observed.",
+      "seconds": 9.9
     },
     {
       "id": "tl-02",
@@ -488,8 +488,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half of his lunch and went to sleep afterwards.",
-      "seconds": 19.4
+      "englishNote": "Resident ate half of his lunch and went to sleep afterwards.",
+      "seconds": 9.2
     },
     {
       "id": "zh-06",
@@ -512,8 +512,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident reported feeling slightly dizzy. Carer assisted resident to sit down and rest. Resident reported feeling better after 10 minutes.",
-      "seconds": 29.5
+      "englishNote": "Resident reported feeling slightly dizzy. Carer assisted resident to sit and rest. Resident reported feeling better after ten minutes.",
+      "seconds": 9.9
     },
     {
       "id": "zh-07",
@@ -536,8 +536,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Liu was reportedly pushed by another care staff member. The resident appeared very fearful and was observed crying continuously.",
-      "seconds": 24.4
+      "englishNote": "Another carer pushed Resident Liu. The resident appeared very frightened and was crying continuously.",
+      "seconds": 11.1
     },
     {
       "id": "yue-05",
@@ -560,8 +560,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was found deceased in bed this morning. No prior symptoms were reported.",
-      "seconds": 22.2
+      "englishNote": "Resident was found deceased in bed this morning. No prior symptoms were observed.",
+      "seconds": 10.2
     },
     {
       "id": "hk-03",
@@ -585,7 +585,7 @@
       "inventedNumbers": [],
       "rawDigitsLeft": false,
       "englishNote": "Resident Mr. Wong was punched by another resident in the dining room. Bruising was observed on his left cheek.",
-      "seconds": 22.7
+      "seconds": 11
     },
     {
       "id": "tl-03",
@@ -608,8 +608,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Carer reported that a staff member slapped the resident on the arm during showering.",
-      "seconds": 21.7
+      "englishNote": "Resident was observed being slapped on the arm by a staff member during showering.",
+      "seconds": 10.9
     },
     {
       "id": "hk-04",
@@ -632,8 +632,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident went missing this afternoon and could not be located anywhere within the facility.",
-      "seconds": 23.8
+      "englishNote": "Resident went missing this afternoon and could not be located anywhere in the facility.",
+      "seconds": 9.6
     },
     {
       "id": "zh-08",
@@ -656,8 +656,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "This morning, the resident was incorrectly administered another resident's antihypertensive medication.",
-      "seconds": 25.4
+      "englishNote": "This morning, the resident was inadvertently administered medication intended for the resident in the adjacent bed, specifically antihypertensive medication.",
+      "seconds": 11.9
     },
     {
       "id": "zh-01",
@@ -665,7 +665,7 @@
       "language": "zh",
       "note": "fall + head strike + bleeding",
       "expect": "check",
-      "finalPriority": null,
+      "finalPriority": 2,
       "modelOnlyPriority": 2,
       "rnMustCheck": true,
       "ruleMustReport": false,
@@ -680,8 +680,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "At 07:00, resident experienced a fall in the bathroom and struck her head. Minor bleeding was observed on her forehead. Resident was assisted to sit on a chair, and gauze pressure was applied to the bleeding area.",
-      "seconds": 27.5
+      "englishNote": "At 07:00, the resident fell in the bathroom and struck her head, resulting in minor bleeding on her forehead. The carer assisted her to a seated position in a chair and applied pressure to the area with gauze.",
+      "seconds": 10.5
     },
     {
       "id": "zh-02",
@@ -704,8 +704,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half of their lunch, stating they had no appetite. Resident slept for two hours during the afternoon.",
-      "seconds": 22.5
+      "englishNote": "Resident ate only half of their lunch, stating a lack of appetite, and slept for two hours in the afternoon.",
+      "seconds": 9.7
     },
     {
       "id": "zh-03",
@@ -723,13 +723,13 @@
       "surfaced": true,
       "modelSurfaced": true,
       "endedAtHumanGate": true,
-      "agentSteps": 4,
+      "agentSteps": 7,
       "enforcedSteps": 0,
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident slipped from bed onto the floor and was sitting on the ground. Resident reported significant pain in her right wrist, which appeared slightly swollen.",
-      "seconds": 27
+      "englishNote": "Resident slid from the bed onto the floor and was found seated on the ground. Resident reported pain in her right wrist, which appeared slightly swollen.",
+      "seconds": 19
     },
     {
       "id": "zh-04",
@@ -752,8 +752,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident showered today, toileted independently, appeared to be in good spirits, and had a video call with family.",
-      "seconds": 21.2
+      "englishNote": "Resident showered today and used the toilet independently. Resident appeared in a good mood and participated in a video call with family.",
+      "seconds": 9.9
     },
     {
       "id": "zh-05",
@@ -776,8 +776,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident's daughter called via phone to inquire about the resident's recent meal intake. Resident finished her breakfast.",
-      "seconds": 23.6
+      "englishNote": "Resident's daughter called via phone inquiring about the resident's recent oral intake. Resident consumed all of her breakfast.",
+      "seconds": 9
     },
     {
       "id": "yue-01",
@@ -785,7 +785,7 @@
       "language": "yue",
       "note": "fall + head strike, Cantonese",
       "expect": "check",
-      "finalPriority": null,
+      "finalPriority": 2,
       "modelOnlyPriority": 2,
       "rnMustCheck": true,
       "ruleMustReport": false,
@@ -800,8 +800,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident experienced a fall in the corridor this morning and struck his head. An area of swelling was observed on the back of his head. Resident reported feeling dizzy.",
-      "seconds": 28.2
+      "englishNote": "Resident fell in the corridor this morning and struck his head. Swelling observed on the back of the head. Resident reported feeling dizzy.",
+      "seconds": 11.6
     },
     {
       "id": "yue-02",
@@ -824,8 +824,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half a bowl of congee today. Staff assisted resident to the toilet, during which resident reported experiencing some knee pain.",
-      "seconds": 23.8
+      "englishNote": "Resident consumed half a bowl of porridge. Assisted resident to the toilet, during which resident reported knee pain.",
+      "seconds": 9.2
     },
     {
       "id": "yue-03",
@@ -848,8 +848,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident did not eat lunch, stating they were not hungry. Staff will re-offer meal later.",
-      "seconds": 21.3
+      "englishNote": "Resident declined lunch, stating he was not hungry. Staff will re-offer food later.",
+      "seconds": 8.8
     },
     {
       "id": "yue-04",
@@ -872,8 +872,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Ho's son called ([PHONE_REDACTED]) to contact her. Resident appeared to be in good spirits today.",
-      "seconds": 22.5
+      "englishNote": "Resident was in good spirits today. Her son called her.",
+      "seconds": 9.2
     },
     {
       "id": "hk-01",
@@ -896,8 +896,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "In the early hours of the morning, resident Mr. Cheung fell in his room. A bleeding wound was observed on his arm, which was dressed with gauze.",
-      "seconds": 26.6
+      "englishNote": "Resident Mr. Cheung had a fall in his room during the early hours of the morning. There was a bleeding wound on his arm, which has been dressed with gauze.",
+      "seconds": 10.9
     },
     {
       "id": "hk-02",
@@ -920,8 +920,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Lam finished her breakfast today and attended a singing activity in the afternoon.",
-      "seconds": 19.3
+      "englishNote": "Resident Mrs. Lam finished her breakfast today and participated in a singing activity in the afternoon.",
+      "seconds": 9
     },
     {
       "id": "en-01",
@@ -929,7 +929,7 @@
       "language": "en",
       "note": "found on floor + head strike",
       "expect": "check",
-      "finalPriority": null,
+      "finalPriority": 2,
       "modelOnlyPriority": 2,
       "rnMustCheck": true,
       "ruleMustReport": false,
@@ -944,8 +944,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "At 03:00, resident was found on the floor next to his bed. Resident reported hitting his head on the bedside table. A small cut was observed above his eyebrow.",
-      "seconds": 29.3
+      "englishNote": "At 03:00, resident was found on the floor beside his bed. Resident reported striking his head on the bedside table. A small laceration was observed above his eyebrow.",
+      "seconds": 10
     },
     {
       "id": "en-02",
@@ -968,8 +968,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident declined lunch. She appeared quiet but settled. Fluid intake was encouraged.",
-      "seconds": 19.6
+      "englishNote": "Resident declined lunch. Resident appeared quiet but settled. Fluid intake was encouraged.",
+      "seconds": 8.5
     },
     {
       "id": "en-03",
@@ -992,8 +992,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident slipped in the hallway. No injuries were noted. Resident was assisted back to a chair.",
-      "seconds": 20.8
+      "englishNote": "Resident slipped in the hallway. No injuries were observed. Resident was assisted back to their chair.",
+      "seconds": 10.6
     },
     {
       "id": "en-04",
@@ -1016,8 +1016,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was found unresponsive in bed this morning and passed away. The carer reported that this was unexpected.",
-      "seconds": 21.9
+      "englishNote": "Resident was found unresponsive in bed this morning and passed away. The occurrence was unexpected.",
+      "seconds": 9
     },
     {
       "id": "en-05",
@@ -1040,8 +1040,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Carer reported observing another staff member slap the resident on the arm during shower care. The resident was observed crying.",
-      "seconds": 22.3
+      "englishNote": "Resident was observed crying after another staff member allegedly slapped her on the arm during her shower.",
+      "seconds": 9.3
     },
     {
       "id": "en-06",
@@ -1064,8 +1064,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident assisted with a shower. Skin observed to be intact. Resident consumed all of his dinner.",
-      "seconds": 22.4
+      "englishNote": "Assisted resident with a shower. Skin observed to be intact. Resident consumed all of his dinner.",
+      "seconds": 9.1
     },
     {
       "id": "tl-01",
@@ -1088,8 +1088,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident fell in the bathroom this morning. Resident struck her head, and a small amount of bleeding was noted.",
-      "seconds": 24.9
+      "englishNote": "Resident (Lola Maria) fell in the bathroom this morning, struck her head, and had a small amount of bleeding.",
+      "seconds": 10
     },
     {
       "id": "tl-02",
@@ -1112,8 +1112,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident consumed half of his lunch and went to sleep afterwards.",
-      "seconds": 23.6
+      "englishNote": "Resident ate half of his lunch and went to sleep afterwards.",
+      "seconds": 8.8
     },
     {
       "id": "zh-06",
@@ -1136,8 +1136,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident reported feeling slightly dizzy. Carer assisted the resident to sit down and rest. Resident reported feeling better after 10 minutes.",
-      "seconds": 21.1
+      "englishNote": "Resident reported feeling slightly dizzy. Carer assisted resident to sit and rest. Resident reported feeling somewhat better after ten minutes.",
+      "seconds": 9.5
     },
     {
       "id": "zh-07",
@@ -1160,8 +1160,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Carer reported that another staff member pushed Resident Liu. The resident appeared fearful and was observed crying continuously.",
-      "seconds": 23.8
+      "englishNote": "Resident was observed crying and expressing fear after another care worker reportedly pushed her.",
+      "seconds": 9
     },
     {
       "id": "yue-05",
@@ -1184,8 +1184,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was found deceased in bed this morning. No prior symptoms were observed beforehand.",
-      "seconds": 22
+      "englishNote": "Resident was found deceased in bed this morning. No prior symptoms were observed.",
+      "seconds": 10.1
     },
     {
       "id": "hk-03",
@@ -1208,8 +1208,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident Wong was punched by another resident in the dining room. Bruising was observed on his left cheek.",
-      "seconds": 26.4
+      "englishNote": "Resident Mr. Wong was punched by another resident in the dining room. Bruising was observed on his left cheek.",
+      "seconds": 9.8
     },
     {
       "id": "tl-03",
@@ -1232,8 +1232,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Carer reported that a staff member slapped the resident on the arm during showering.",
-      "seconds": 24.1
+      "englishNote": "Resident was observed being slapped on the arm by a staff member during showering.",
+      "seconds": 9.5
     },
     {
       "id": "hk-04",
@@ -1241,7 +1241,7 @@
       "language": "yue",
       "note": "missing resident",
       "expect": "check",
-      "finalPriority": null,
+      "finalPriority": 2,
       "modelOnlyPriority": 2,
       "rnMustCheck": true,
       "ruleMustReport": false,
@@ -1256,8 +1256,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "Resident was reported missing this afternoon and could not be located within the facility.",
-      "seconds": 27
+      "englishNote": "Resident was missing from the facility this afternoon and could not be found anywhere on the premises.",
+      "seconds": 8.8
     },
     {
       "id": "zh-08",
@@ -1265,7 +1265,7 @@
       "language": "zh",
       "note": "medication error",
       "expect": "check",
-      "finalPriority": null,
+      "finalPriority": 2,
       "modelOnlyPriority": 2,
       "rnMustCheck": true,
       "ruleMustReport": false,
@@ -1280,8 +1280,8 @@
       "verifierFlags": 0,
       "inventedNumbers": [],
       "rawDigitsLeft": false,
-      "englishNote": "This morning, the resident was administered incorrect medication (the neighbouring resident's antihypertensive medication).",
-      "seconds": 28.7
+      "englishNote": "Resident was given another resident's medication (blood pressure medication) by mistake this morning.",
+      "seconds": 9.6
     }
   ]
 }
