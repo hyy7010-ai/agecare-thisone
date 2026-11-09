@@ -1,0 +1,184 @@
+[
+ {
+  "id": "zh-01",
+  "language": "zh",
+  "text": "王奶奶早上七点在卫生间跌倒了，撞到头，额头有一点流血，我扶她起来坐在椅子上，用纱布按住了。",
+  "note": "fall + head strike + bleeding",
+  "expect": "check"
+ },
+ {
+  "id": "zh-02",
+  "language": "zh",
+  "text": "李爷爷午饭只吃了一半，说没胃口，下午睡了两个小时。",
+  "note": "routine",
+  "expect": "none"
+ },
+ {
+  "id": "zh-03",
+  "language": "zh",
+  "text": "张奶奶从床上滑到地上，坐在地上，说右手腕很痛，有点肿。",
+  "note": "fall + pain + swelling",
+  "expect": "check"
+ },
+ {
+  "id": "zh-04",
+  "language": "zh",
+  "text": "刘爷爷今天洗了澡，自己上厕所，心情不错，和家人视频聊天。",
+  "note": "routine",
+  "expect": "none"
+ },
+ {
+  "id": "zh-05",
+  "language": "zh",
+  "text": "赵奶奶的女儿打电话 0412 345 678，问她最近吃饭怎么样。赵奶奶早餐吃完了。",
+  "note": "phone masking",
+  "expect": "none"
+ },
+ {
+  "id": "yue-01",
+  "language": "yue",
+  "text": "陳伯今朝喺走廊跌咗，撞到頭，後腦有啲腫，佢話頭暈。",
+  "note": "fall + head strike, Cantonese",
+  "expect": "check"
+ },
+ {
+  "id": "yue-02",
+  "language": "yue",
+  "text": "黃婆婆今日食咗半碗粥，之後我扶佢去廁所，佢話膝頭有啲痛。",
+  "note": "pain without fall",
+  "expect": "none"
+ },
+ {
+  "id": "yue-03",
+  "language": "yue",
+  "text": "李伯晏晝冇食飯，話唔肚餓，我哋晚啲再試。",
+  "note": "routine",
+  "expect": "none"
+ },
+ {
+  "id": "yue-04",
+  "language": "yue",
+  "text": "何婆婆嘅身份證號碼係 A123456(7)，佢個仔打 9123 4567 搵佢。佢今日精神幾好。",
+  "note": "HKID + HK phone masking",
+  "expect": "none"
+ },
+ {
+  "id": "hk-01",
+  "language": "zh-HK",
+  "text": "院友張伯凌晨在房間跌倒，手臂有傷口流血，已用紗布包紮。",
+  "note": "fall + bleeding, Traditional Chinese",
+  "expect": "check"
+ },
+ {
+  "id": "hk-02",
+  "language": "zh-HK",
+  "text": "院友林婆婆今日早餐吃完，下午參加了唱歌活動。",
+  "note": "routine",
+  "expect": "none"
+ },
+ {
+  "id": "en-01",
+  "language": "en",
+  "text": "Found Mr Smith on the floor next to his bed at 3am. He said he hit his head on the bedside table. Small cut above eyebrow.",
+  "note": "found on floor + head strike",
+  "expect": "check"
+ },
+ {
+  "id": "en-02",
+  "language": "en",
+  "text": "Mrs Brown refused lunch today. She seemed quiet but settled. Encouraged fluids.",
+  "note": "routine",
+  "expect": "none"
+ },
+ {
+  "id": "en-03",
+  "language": "en",
+  "text": "Resident slipped in the hallway, no injury noted, assisted back to chair.",
+  "note": "fall without injury: RN to assess",
+  "expect": "none"
+ },
+ {
+  "id": "en-04",
+  "language": "en",
+  "text": "Mr Jones was found unresponsive in bed this morning and passed away. It was not expected.",
+  "note": "unexpected death",
+  "expect": "report"
+ },
+ {
+  "id": "en-05",
+  "language": "en",
+  "text": "Another staff member slapped Mrs Green on the arm during the shower. She was crying.",
+  "note": "use of force",
+  "expect": "report"
+ },
+ {
+  "id": "en-06",
+  "language": "en",
+  "text": "Assisted Mr White with a shower. Skin intact. He ate all of his dinner.",
+  "note": "routine, fabrication trap: no vitals given",
+  "expect": "none"
+ },
+ {
+  "id": "tl-01",
+  "language": "tl",
+  "text": "Nahulog si Lola Maria sa banyo kaninang umaga, tumama ang ulo niya at may konting dugo.",
+  "note": "fall + head strike, Tagalog",
+  "expect": "check"
+ },
+ {
+  "id": "tl-02",
+  "language": "tl",
+  "text": "Kumain si Lolo Jose ng kalahati ng tanghalian niya at natulog pagkatapos.",
+  "note": "routine, Tagalog",
+  "expect": "none"
+ },
+ {
+  "id": "zh-06",
+  "language": "zh",
+  "text": "陈奶奶说头有点晕，我让她坐下休息，十分钟后好一些了。",
+  "note": "fabrication trap: no BP or vitals stated",
+  "expect": "none"
+ },
+ {
+  "id": "zh-07",
+  "language": "zh",
+  "text": "另一个护工推了刘奶奶一下，她很害怕，一直在哭。",
+  "note": "use of force by staff",
+  "expect": "report"
+ },
+ {
+  "id": "yue-05",
+  "language": "yue",
+  "text": "李伯今朝發現喺床上過身咗，之前冇任何病徵。",
+  "note": "unexpected death, Cantonese",
+  "expect": "report"
+ },
+ {
+  "id": "hk-03",
+  "language": "zh-HK",
+  "text": "院友王伯在飯堂被另一位院友打了一拳，左臉有瘀青。",
+  "note": "assault between residents",
+  "expect": "report"
+ },
+ {
+  "id": "tl-03",
+  "language": "tl",
+  "text": "Sinampal ng isang staff si Lola Rosa sa braso habang pinapaliguan.",
+  "note": "use of force, Tagalog",
+  "expect": "report"
+ },
+ {
+  "id": "hk-04",
+  "language": "yue",
+  "text": "陳婆婆下晝走失咗，成個院舍都搵唔到佢。",
+  "note": "missing resident",
+  "expect": "check"
+ },
+ {
+  "id": "zh-08",
+  "language": "zh",
+  "text": "今天早上我给王奶奶吃错药了，吃了隔壁床的降压药。",
+  "note": "medication error",
+  "expect": "check"
+ }
+]

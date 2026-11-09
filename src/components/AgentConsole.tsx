@@ -16,7 +16,8 @@ type AgentResult = {
   verification?: { supported: boolean; unsupportedStatements: string[] };
   sirs?: {
     isReportable: boolean; category: string; priority: number | null; timeframe: string | null;
-    rationale?: string; ruleReasons: string[]; raisedByRedLine: boolean; lockDowngrade: boolean;
+    rationale?: string; mustReportReasons: string[]; rnCheckReasons: string[]; rnMustCheck: boolean; raisedByRedLine: boolean; lockDowngrade: boolean;
+    framework?: string; jurisdiction?: "AU" | "HK"; modelPriority?: number | null;
   };
   review?: { ticket: string; status: string; note: string };
   trace: Step[]; totalMs: number; model: string;
@@ -35,6 +36,7 @@ const LANGS = [
 const SAMPLES = [
   { lang: "zh", label: "普通话：跌倒撞头", text: "王奶奶早上七点在卫生间跌倒了，撞到头，额头有一点流血，我扶她起来坐在椅子上，用纱布按住了。" },
   { lang: "yue", label: "粵語：食飯同如廁", text: "陳伯今朝食咗半碗粥，之後我扶佢去廁所，佢話膝頭有啲痛。" },
+  { lang: "zh", label: "普通话：被推（暴力）", text: "另一个护工推了刘奶奶一下，她很害怕，一直在哭。" },
   { lang: "en", label: "English: with phone number", text: "Mrs Lee refused lunch today. Her daughter called from 0412 345 678 asking about her mood. She seemed quiet but settled." },
 ];
 
@@ -42,7 +44,7 @@ const TOOL_LABEL: Record<string, string> = {
   transcribe_audio: "转写录音 Transcribe",
   draft_progress_note: "生成英文护理记录 Draft note",
   verify_against_source: "逐句核对原话 Verify",
-  assess_sirs: "SIRS 严重事件判断 Assess",
+  assess_incident: "严重事件判断 Assess incident",
   route_for_human_review: "交给护士确认 Human review",
 };
 
@@ -53,16 +55,19 @@ const readAudit = (): AuditEntry[] => {
 
 export function AgentConsole() {
   const [language, setLanguage] = useState("zh");
+  const [jurisdiction, setJurisdiction] = useState<"AU" | "HK">("HK");
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AgentResult | null>(null);
+  const [live, setLive] = useState<{ steps: Step[]; running: { step: number; tool: string; reason: string; enforcedBy: string } | null }>({ steps: [], running: null });
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const [editedNote, setEditedNote] = useState("");
   const [rnName, setRnName] = useState("");
   const [approver, setApprover] = useState("");
+  const [rnCheck, setRnCheck] = useState<"" | "report" | "no_report">("");
   const [decision, setDecision] = useState<"" | "approved" | "returned">("");
   const [lockMsg, setLockMsg] = useState("");
   const [audit, setAudit] = useState<AuditEntry[]>(readAudit());
@@ -98,17 +103,41 @@ export function AgentConsole() {
   const stopRec = () => { recRef.current?.stop(); setRecording(false); };
 
   const run = async () => {
-    setLoading(true); setError(""); setResult(null); setDecision(""); setApprover(""); setLockMsg(""); setOpen({});
+    setLoading(true); setError(""); setResult(null); setLive({ steps: [], running: null }); setDecision(""); setApprover(""); setRnCheck(""); setLockMsg(""); setOpen({});
     try {
       const fd = new FormData();
       fd.append("language", language);
+      fd.append("jurisdiction", jurisdiction);
       fd.append("text", text);
       if (audioBlob) fd.append("audio", audioBlob, "note.webm");
-      const r = await fetch("/api/agent/run", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Agent failed");
-      setResult(j.result);
-      log("AGENT_RUN", `${j.result.review?.ticket} · ${j.result.trace.length} steps · SIRS P${j.result.sirs?.priority ?? "-"}`);
+      const r = await fetch("/api/agent/run?stream=1", { method: "POST", body: fd });
+      if (!r.ok || !r.body) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || "Agent failed");
+      }
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let final: AgentResult | null = null;
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line);
+          if (ev.type === "tool_start") setLive((l) => ({ steps: l.steps, running: ev }));
+          if (ev.type === "step") setLive((l) => ({ steps: [...l.steps, ev.step], running: null }));
+          if (ev.type === "result") final = ev.result;
+          if (ev.type === "error") throw new Error(ev.error);
+        }
+      }
+      if (!final) throw new Error("Agent stopped before finishing.");
+      setResult(final);
+      log("AGENT_RUN", `${final.review?.ticket} · ${final.trace.length} steps · SIRS P${final.sirs?.priority ?? "-"}`);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -119,7 +148,7 @@ export function AgentConsole() {
   const tryDowngrade = () => {
     if (!result?.sirs) return;
     if (result.sirs.lockDowngrade) {
-      setLockMsg("已锁定：这是 Priority 1 严重事件，必须在 24 小时内上报，系统不允许降级。Locked: Priority 1 cannot be downgraded.");
+      setLockMsg(`已锁定：这是必须上报的严重事件（期限 ${result.sirs.timeframe}），系统不允许降级。Locked: cannot be downgraded.`);
       log("BLOCKED_DOWNGRADE", `${result.review?.ticket} · attempted P1 → P2`);
     } else {
       setLockMsg("可以由护士调整，但会记录在审计日志里。RN may adjust; change is logged.");
@@ -129,7 +158,12 @@ export function AgentConsole() {
 
   const decide = (d: "approved" | "returned") => {
     if (!rnName.trim()) { setError("请先填写确认护士的名字。Enter the RN's name first."); return; }
+    if (d === "approved" && result?.sirs?.rnMustCheck && !rnCheck) {
+      setError("红线要求：请先选择这件事要不要上报。Red line: record the reporting decision first."); return;
+    }
     setError(""); setDecision(d); setApprover(rnName.trim());
+    if (result?.sirs?.rnMustCheck && rnCheck)
+      log("RN_REPORTING_DECISION", `${result?.review?.ticket} · ${rnCheck === "report" ? "will report" : "not reportable"} · by ${rnName}`);
     const edited = result?.note && editedNote.trim() !== result.note.englishNote.trim();
     log(d === "approved" ? "RN_APPROVED" : "RN_RETURNED",
       `${result?.review?.ticket} · by ${rnName}${edited ? " · note edited by RN" : ""}`);
@@ -140,8 +174,10 @@ export function AgentConsole() {
     { ok: true, label: "隐私遮盖 Privacy masking", detail: `${result.maskedIdentifiers} 个号码已遮盖 identifiers masked before AI` },
     { ok: !!result.verification?.supported, label: "逐句核对 Anti-fabrication check",
       detail: result.verification?.supported ? "每句话都能在原话里找到 All statements supported" : `${result.verification?.unsupportedStatements?.length || 0} 句没有依据，需人工看 unsupported` },
-    { ok: true, label: "红线规则 SIRS red line",
-      detail: s?.raisedByRedLine ? `规则把等级提高到 P${s.priority}（AI 原判断更低）Rule raised priority` : s?.ruleReasons?.length ? `规则检查：${s.ruleReasons.join("; ")}` : "未触发 Not triggered" },
+    { ok: true, label: "红线规则 Red-line rule",
+      detail: s?.raisedByRedLine ? "AI 原本判断不用上报，规则强制改为必须上报 Rule forced must-report"
+        : s?.rnMustCheck ? "可能需要上报：护士必须作出决定，不能直接忽略 RN must decide"
+        : s?.lockDowngrade ? "必须上报，已锁定 Must report, locked" : "未触发 Not triggered" },
     { ok: decision === "approved", label: "人工确认 Human gate",
       detail: decision === "approved" ? `已由 ${approver} 确认 Approved` : decision === "returned" ? "已退回护工修改 Returned" : "等待护士确认，AI 不能自己定稿 Awaiting RN" },
   ] : [];
@@ -170,6 +206,14 @@ export function AgentConsole() {
                 </button>
               ))}
             </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <ShieldCheck className="w-4 h-4 text-slate-500" />
+              <span className="text-slate-500">事故规则 Incident rules:</span>
+              {([["HK", "香港 社署特別事故 (3 天內)"], ["AU", "Australia SIRS (24h / 30d)"]] as const).map(([k, l]) => (
+                <button key={k} onClick={() => setJurisdiction(k)}
+                  className={`px-3 py-1 rounded-full border ${jurisdiction === k ? "bg-slate-800 text-white border-slate-800" : "bg-white"}`}>{l}</button>
+              ))}
+            </div>
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
               placeholder="用任何语言打字或录音，描述刚才发生的事。Type or record what happened, in any language."
               className="w-full border rounded-lg p-3 text-sm" />
@@ -195,12 +239,12 @@ export function AgentConsole() {
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
 
-          {result && (
+          {(result || loading) && (
             <div className="bg-white rounded-xl border p-4">
               <h2 className="font-semibold mb-3 flex items-center gap-2"><ClipboardList className="w-4 h-4" />智能体步骤 Agent trace
-                <span className="text-xs font-normal text-slate-500">{result.trace.length} steps · {(result.totalMs / 1000).toFixed(1)}s · {result.model}</span></h2>
+                {result && <span className="text-xs font-normal text-slate-500">{result.trace.length} steps · {(result.totalMs / 1000).toFixed(1)}s · {result.model}</span>}</h2>
               <ol className="space-y-2">
-                {result.trace.map((t) => (
+                {(result?.trace || live.steps).map((t) => (
                   <li key={t.step} className="border rounded-lg">
                     <button onClick={() => setOpen({ ...open, [t.step]: !open[t.step] })} className="w-full flex items-center gap-2 p-2 text-left text-sm">
                       {open[t.step] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -214,6 +258,14 @@ export function AgentConsole() {
                     {open[t.step] && <pre className="mx-2 mb-2 p-2 bg-slate-50 rounded text-xs overflow-auto max-h-60">{JSON.stringify(t.output, null, 2)}</pre>}
                   </li>
                 ))}
+                {loading && (
+                  <li className="border border-dashed rounded-lg p-2 text-sm flex items-center gap-2 text-slate-600">
+                    <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                    {live.running
+                      ? <span><b>{TOOL_LABEL[live.running.tool] || live.running.tool}</b> 进行中… {live.running.reason && <span className="text-xs text-slate-500">理由：{live.running.reason}</span>}</span>
+                      : <span>AI 正在规划下一步 Planning next step…</span>}
+                  </li>
+                )}
               </ol>
             </div>
           )}
@@ -251,12 +303,26 @@ export function AgentConsole() {
 
           {s && (
             <div className={`rounded-xl border p-4 space-y-2 ${s.priority === 1 ? "bg-red-50 border-red-200" : "bg-white"}`}>
-              <h2 className="font-semibold">SIRS 严重事件 Serious incident</h2>
-              <p className="text-sm">{s.isReportable ? `需要上报 Reportable · Priority ${s.priority} · ${s.timeframe}` : "不需要上报 Not reportable"}</p>
+              <h2 className="font-semibold">{s.jurisdiction === "HK" ? "社署特別事故 Special incident (HK)" : "SIRS 严重事件 Serious incident (AU)"}</h2>
+              <p className="text-xs text-slate-500">{s.framework}</p>
+              <p className="text-sm">{s.priority === 1 ? `需要上报 Reportable · 期限 ${s.timeframe}`
+                : s.priority === 2 ? (s.jurisdiction === "HK" ? `可能需要上报，请护士核对 Possible: ${s.timeframe}` : `需要上报 Reportable · Priority 2 · ${s.timeframe}`)
+                : "不需要上报 Not reportable"}</p>
+              {s.raisedByRedLine && <p className="text-xs text-amber-700">AI 原本判断：{s.modelPriority ? `P${s.modelPriority}` : "不需要上报"}；红线规则提高了等级。</p>}
               {s.category && <p className="text-sm text-slate-600">{s.category}</p>}
               {s.lockDowngrade && <p className="text-xs flex items-center gap-1 text-red-700"><Lock className="w-3 h-3" />红线锁定：不能降级 Locked</p>}
               <button onClick={tryDowngrade} className="text-xs underline text-slate-600">尝试降级 Try to downgrade</button>
               {lockMsg && <p className="text-xs text-red-700">{lockMsg}</p>}
+              {s.rnMustCheck && (
+                <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs space-y-1">
+                  <p className="font-semibold text-amber-800">红线：护士必须核对 RN must check</p>
+                  <ul className="list-disc ml-4 text-amber-800">{s.rnCheckReasons.map((r) => <li key={r}>{r}</li>)}</ul>
+                  <div className="flex gap-2 pt-1">
+                    <button disabled={!!decision} onClick={() => setRnCheck("report")} className={`px-2 py-1 rounded border ${rnCheck === "report" ? "bg-red-600 text-white" : "bg-white"}`}>要上报 Report</button>
+                    <button disabled={!!decision} onClick={() => setRnCheck("no_report")} className={`px-2 py-1 rounded border ${rnCheck === "no_report" ? "bg-slate-700 text-white" : "bg-white"}`}>不用上报 Not reportable</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
