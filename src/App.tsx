@@ -7,6 +7,7 @@ import { Login } from "./components/Login";
 import { Register } from "./components/Register";
 import { ForgotPassword } from "./components/ForgotPassword";
 import { DashboardContainer } from "./components/DashboardContainer";
+import { AgentConsole } from "./components/AgentConsole";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/agent" element={<AgentConsole />} />
             <Route
               path="/"
               element={

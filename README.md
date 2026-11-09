@@ -1,51 +1,79 @@
-# Aged Care Compliance Copilot
+# Sunrise Care — an AI documentation agent for multilingual aged care workers
 
-An AI-powered application designed to support caregivers and registered nurses (RNs) in Australian aged care facilities. It bridges the gap between casual, multilingual carer inputs and strict Australian clinical documentation standards, specifically aligning with the Serious Incident Response Scheme (SIRS) and the Strengthened Aged Care Quality Standards.
+Sunrise Care lets an aged care worker describe what happened in their own language, by voice or text.
+An AI agent turns it into an objective English progress note, checks every sentence against the worker's own words,
+decides whether it is a reportable serious incident, and hands everything to a Registered Nurse.
+**Nothing becomes part of the record until a nurse confirms it.**
 
-## Core Value Proposition
+> Entry for the Cyberport **Hong Kong AI Agent Challenge 2026 (智賦香江 AI 智能體應用大賽)**, Healthcare & Wellness track.
 
-- **Multilingual Support for Carers**: Allows carers from diverse linguistic backgrounds to input observations casually via text or speech.
-- **Automated Clinical Transformation**: Converts casual observations into professional, objective English clinical progress notes.
-- **SIRS Compliance**: Analyzes incident reports against ACQSC guidelines to automatically determine SIRS reportability and priority, drafting compliance-ready regulator notifications.
-- **Clinical Triage**: Automatically flags potential risks (e.g., pressure injuries, critical symptoms) based on visual AI analysis of wound images.
+## The problem
 
-## Features & Implementation Layers
+- Many aged care workers in Australia and Hong Kong are not native English speakers, but clinical records are often written in English.
+- Writing notes takes time away from residents, and translated notes can add or lose facts.
+- Serious incidents (for example a fall with a head strike) have strict reporting deadlines. Under Australia's Serious Incident Response Scheme (SIRS), Priority 1 incidents must be reported within 24 hours.
 
-To clarify what is fully functional, what is mock UI, and what is planned for the future, this project is structured into three distinct layers:
+## How the agent works
 
-### 1. 【AI Fully Implemented】 (Live Gemini Endpoints)
-The backend leverages `gemini-3.5-flash` to process real-time multimodal inputs:
-- **Image Triage API (`/api/vision`)**: Analyzes wound/injury photos to determine type, severity, and potential risks, suggesting temporary care plans based on Australian guidelines.
-- **SIRS Classification API (`/api/sirs`)**: Uses **Google Search Tool Grounding** to look up current ACQSC guidelines and reason about incident priority (Priority 1 vs 2), generating regulator-ready drafts.
-- **Speech Translation API (`/api/audio-note`)**: Processes raw WebM audio recordings from carers in *any language* (Mandarin, Tagalog, etc.) and outputs a structured English clinical note.
-- **Cross-Lingual Note API (`/api/care-note`)**: Transforms typed casual notes into professional clinical notes while providing a `nativeConfirmation` (a translation of the final note back into the carer's original language to ensure accuracy).
+```
+Carer voice / text (Mandarin, Cantonese, Traditional Chinese, Tagalog, English)
+        │  privacy masking (phone, ID and HKID-style numbers removed before AI)
+        ▼
+ ┌──────────────── Gemini agent loop (function calling, max 8 steps) ────────────────┐
+ │ transcribe_audio → draft_progress_note → verify_against_source → assess_sirs →   │
+ │                                         (redraft once if unsupported)             │
+ │                        route_for_human_review  ← the only way to finish           │
+ └──────────────────────────────────────────────────────────────────────────────────┘
+        ▼
+ Registered Nurse reviews, edits, approves or returns  →  audit log
+```
 
-### 2. 【UI Fully Implemented】 (Frontend Components)
-The React/Vite frontend provides a polished interface for:
-- **Role-Based Access**: Distinct views for Caregivers vs. Registered Nurses.
-- **Dashboard & Shift View**: Real-time overview of resident status, care minutes, and pending RN reviews.
-- **Interactive Body Diagram**: Visually map injuries or observations.
-- **Red Line Lockdown (Demo Feature)**: If a manager attempts to downgrade an AI-classified Priority 1 SIRS incident below the mandated threshold, the system displays an "Aged Care Act Breach" warning and locks the submission, illustrating compliance guardrails.
+The model plans its own tool calls and gives a reason for each one. The server runs the tools and records every step.
+If the model skips a mandatory step, the orchestrator runs it anyway and marks it as "enforced".
 
-### 3. 【Phase 2 Planning】 (Future Roadmap)
-- Deeper integration with legacy EHR systems (e.g., AutumnCare, LeeCare).
-- Real-time biometric IoT integrations (e.g., automated fall detection alerts, vital sign monitoring).
-- Extended native language training modules for staff.
+## Safety by design
 
-## Tech Stack
-- **Frontend**: React 19, Vite, Tailwind CSS, Lucide Icons
-- **Backend**: Express.js (Node.js), `@google/genai` SDK
-- **Database**: Firebase Firestore (for simulated real-time data syncing and note persistence)
+| Guardrail | How it is enforced |
+|---|---|
+| Human gate | The agent has no tool that finalises a record or contacts a regulator. Every run ends at "awaiting RN confirmation". |
+| SIRS red line | A rule-based check (English, Simplified and Traditional Chinese keywords) sets a Priority 1 floor for falls with injury, head strikes, bleeding, fractures, unexpected death and use of force. The model can raise a priority, never lower it. The UI blocks downgrades and logs the attempt. |
+| Anti-fabrication | A separate verifier call lists any statement in the note that is not supported by the carer's own words. The note prompt also forbids adding vitals, notifications or diagnoses; missing follow-ups go to a separate list. |
+| Back-translation | The note is translated back into the carer's language so they can check it. |
+| Privacy | Identifier masking before any AI call. The demo uses fictional data only. |
+| Bounded autonomy | Max 8 tool calls per run. The server injects the carer's source text into each tool, so the model cannot alter what the carer said. |
+| Audit | Every run, approval, return and blocked downgrade is logged. |
 
-## Data Governance & Privacy
-- This application processes simulated, non-identifiable patient data. 
-- In a production environment, AI processing would require explicit consent frameworks compliant with the Australian Privacy Principles (APPs).
-- Currently, Gemini API calls do *not* use data for model training if configured via enterprise endpoints, ensuring organizational data security.
+## Pre-existing work vs. new contest work
 
-## Setup & Running
+| Built before the contest (July 2026) | Built for this contest (November 2026) |
+|---|---|
+| Carer and RN app: dashboard, resident profiles, body diagram, roster guard, family updates | `agent.ts`: function-calling agent loop, tool definitions, orchestrator for mandatory steps |
+| Single-prompt endpoints: `/api/audio-note`, `/api/care-note`, `/api/sirs`, `/api/vision`, shift summary and handover | Rule-based SIRS Priority 1 floor that the model cannot lower |
+| Australian aged care terminology rules and anti-fabrication prompt | Sentence-level verifier against the carer's own words |
+| Red Line Lockdown UI for SIRS Priority 1 | `/agent` console: step trace, safety panel, RN approve/return, audit log |
+| | Cantonese and Traditional Chinese (Hong Kong) input and confirmation; HKID-style masking |
 
-1. Install dependencies: \`npm install\`
-2. Set environment variables: Add \`GEMINI_API_KEY\` to a \`.env\` file.
-3. Start the application: \`npm run dev\`
+The July 2026 version won **Best of the Year – Vibe Coding** at the Google AI Vibe-a-thon 2026 (395 entries).
 
-(The application runs full-stack with a Vite middleware over an Express server on port 3000).
+## Models, APIs and tools used
+
+- Google Gemini (`gemini-3.5-flash`) through the `@google/genai` SDK: transcription, note drafting, verification, SIRS assessment and agent planning (function calling).
+- Google Search grounding in the pre-existing `/api/sirs` endpoint.
+- React 19, Vite, Tailwind CSS, Express, Firebase Firestore (pre-existing app).
+- Code written with AI coding assistants (Google AI Studio, Claude Code) under the author's direction.
+- No real resident data is used. All sample inputs are fictional.
+
+## Try it
+
+1. `npm install`
+2. Create `.env` with `GEMINI_API_KEY=...`
+3. `npm run dev`, then open `http://localhost:3000/agent`
+4. Pick a fictional sample (Mandarin, Cantonese or English), or record your own voice, and press **Run agent**.
+
+The original carer / RN app is at `http://localhost:3000/` (demo logins on the sign-in page).
+
+## Limitations
+
+- SIRS rules are Australian. A Hong Kong deployment would need to map them to Hong Kong's incident reporting rules for residential care homes; this has not been built yet.
+- The agent assists documentation only. It does not make clinical decisions.
+- Not yet tested with real aged care staff or residents.
