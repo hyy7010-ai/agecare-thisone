@@ -6,6 +6,8 @@ decides whether it is a reportable serious incident, and hands everything to a R
 **Nothing becomes part of the record until a nurse confirms it.**
 
 > Entry for the Cyberport **Hong Kong AI Agent Challenge 2026 (智賦香江 AI 智能體應用大賽)**, Open Track.
+>
+> **Live demo:** https://agecare-1.onrender.com/agent (fictional data only)
 
 ## The problem
 
@@ -29,6 +31,7 @@ Carer voice / text (Mandarin, Cantonese, Traditional Chinese, Tagalog, English)
 ```
 
 The model plans its own tool calls and gives a reason for each one. The server runs the tools and records every step.
+Independent checks (verification and incident assessment) run in parallel, and each step streams to the page as it happens. A typical run takes about 10 seconds.
 If the model skips a mandatory step, the orchestrator runs it anyway and marks it as "enforced".
 
 ## Safety by design
@@ -42,6 +45,17 @@ If the model skips a mandatory step, the orchestrator runs it anyway and marks i
 | Privacy | Identifier masking before any AI call. The demo uses fictional data only. |
 | Bounded autonomy | Max 8 tool calls per run. The server injects the carer's source text into each tool, so the model cannot alter what the carer said. |
 | Audit | Every run, approval, return and blocked downgrade is logged. |
+
+## MCP server
+
+The same tools are available to other agents and MCP clients (for example Claude Desktop) through `mcp-server.ts`:
+`mask_identifiers`, `red_line_check`, `draft_progress_note`, `verify_against_source`, `assess_incident`, `run_documentation_agent`.
+The safety rules live inside the tools, so any client gets the same red line and the same human gate.
+
+```
+npm run mcp        # stdio MCP server (needs GEMINI_API_KEY)
+npx tsx eval/mcp-smoke.mts   # lists the tools and calls the rule-based ones
+```
 
 ## Two rule sets: Hong Kong and Australia
 
@@ -69,13 +83,15 @@ See [`eval/RESULTS.md`](eval/RESULTS.md) for the latest numbers. Reproduce with 
 | Red Line Lockdown UI for SIRS Priority 1 | `/agent` console: step trace, safety panel, RN approve/return, audit log |
 | | Cantonese and Traditional Chinese (Hong Kong) input and confirmation; HKID-style masking |
 | | Hong Kong SWD special incident rule set, selectable beside Australian SIRS |
-| | Live step streaming, nurse reporting-decision gate, `eval/` test set and script |
+| | Live step streaming, parallel checks (about 10 s per run), nurse reporting-decision gate, `eval/` test set and script |
+| | MCP server exposing the tools to other agents; public demo with keep-alive |
 
 The July 2026 version won **Best of the Year – Vibe Coding** at the Google AI Vibe-a-thon 2026 (395 entries).
 
 ## Models, APIs and tools used
 
-- Google Gemini (`gemini-3.5-flash`) through the `@google/genai` SDK: transcription, note drafting, verification, SIRS assessment and agent planning (function calling).
+- Google Gemini (`gemini-3.5-flash`) through the `@google/genai` SDK: transcription, note drafting, verification, incident assessment and agent planning (function calling). Small thinking budgets keep planning fast.
+- Model Context Protocol TypeScript SDK (`@modelcontextprotocol/sdk`).
 - Google Search grounding in the pre-existing `/api/sirs` endpoint.
 - React 19, Vite, Tailwind CSS, Express, Firebase Firestore (pre-existing app).
 - Code written with AI coding assistants (Google AI Studio, Claude Code) under the author's direction.

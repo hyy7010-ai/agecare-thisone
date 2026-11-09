@@ -29,6 +29,10 @@ import { Type } from "@google/genai";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 const MODEL = "gemini-3.5-flash";
 const MAX_STEPS = 8;
+// Planning and drafting are short, structured tasks; a small thinking budget keeps
+// each step fast. The incident assessment keeps more room to reason.
+const FAST = { thinkingConfig: { thinkingBudget: 0 } };
+const CAREFUL = { thinkingConfig: { thinkingBudget: 512 } };
 
 type GenerateFn = (request: any) => Promise<any>;
 
@@ -136,7 +140,7 @@ function parseJson(text: string): any {
 
 // ---------- tool implementations ----------
 
-function makeTools(generate: GenerateFn, ctx: { audio?: { data: string; mimeType: string }; language: string; jurisdiction: Jurisdiction }) {
+export function makeTools(generate: GenerateFn, ctx: { audio?: { data: string; mimeType: string }; language: string; jurisdiction: Jurisdiction }) {
   const langHint = LANGUAGE_HINTS[ctx.language] || LANGUAGE_HINTS.en;
 
   return {
@@ -154,7 +158,7 @@ function makeTools(generate: GenerateFn, ctx: { audio?: { data: string; mimeType
             { inlineData: ctx.audio },
           ],
         },
-        config: { responseMimeType: "application/json", temperature: 0 },
+        config: { responseMimeType: "application/json", temperature: 0, ...FAST },
       });
       const out = parseJson(r.text);
       const m = maskIdentifiers(out.transcript || "");
@@ -174,7 +178,7 @@ Rules:
 - nativeConfirmation: translate the English note back into ${langHint} so the carer can check it. Empty if the carer spoke English.
 Carer's words: """${transcript}"""
 Return JSON {"englishNote": string, "nativeConfirmation": string, "suggestedFollowUps": string[]}.`,
-        config: { responseMimeType: "application/json", temperature: 0.1 },
+        config: { responseMimeType: "application/json", temperature: 0.1, ...FAST },
       });
       return parseJson(r.text);
     },
@@ -187,7 +191,7 @@ List every statement in the note that is NOT supported by the original words (ad
 Original words: """${transcript}"""
 Note: """${englishNote}"""
 Return JSON {"supported": boolean, "unsupportedStatements": string[]}.`,
-        config: { responseMimeType: "application/json", temperature: 0 },
+        config: { responseMimeType: "application/json", temperature: 0, ...FAST },
       });
       return parseJson(r.text);
     },
@@ -209,7 +213,7 @@ Priority 2 = other reportable incidents (within 30 days).
 An accidental fall is never "Neglect".
 Event: """${englishNote}"""
 Return JSON {"isReportable": boolean, "category": string, "priority": 1 | 2 | null, "rationale": string, "confidence": number}.`;
-      const r = await generate({ model: MODEL, contents: prompt, config: { responseMimeType: "application/json", temperature: 0.1 } });
+      const r = await generate({ model: MODEL, contents: prompt, config: { responseMimeType: "application/json", temperature: 0.1, ...CAREFUL } });
       const model = parseJson(r.text);
       const modelPriority: number | null = model.priority ?? null;
       let priority = modelPriority;
@@ -297,6 +301,7 @@ const SYSTEM = `You are Sunrise Care, a documentation agent for aged care worker
 Goal: turn a carer's voice note or typed note (any language) into a safe English progress note and route it to a Registered Nurse.
 Plan your own steps using the tools. A safe run usually is:
 transcribe_audio (only if audio is attached) -> draft_progress_note -> verify_against_source -> assess_incident -> route_for_human_review.
+verify_against_source and assess_incident are independent: after drafting the note, call BOTH in the same turn so they run in parallel.
 If verify_against_source finds unsupported statements, call draft_progress_note again once with stricter wording before continuing.
 Always give a short plain-English "reason" argument explaining why you are calling the tool.
 You cannot finalise a record or notify anyone. You must finish with route_for_human_review.`;
@@ -323,10 +328,12 @@ export async function runAgent(generate: GenerateFn, input: AgentInput, onEvent:
   const trace: TraceStep[] = [];
   const state: Record<string, any> = { transcript: typed.text, maskedIdentifiers: typed.masked.length };
 
+  let seq = 0;
   const runTool = async (name: string, args: any, enforcedBy: TraceStep["enforcedBy"]) => {
     const t0 = Date.now();
+    const stepNo = ++seq;
     const { reason = "", ...rest } = args || {};
-    onEvent({ type: "tool_start", step: trace.length + 1, tool: name, reason, enforcedBy });
+    onEvent({ type: "tool_start", step: stepNo, tool: name, reason, enforcedBy });
     // Fill arguments from state so the model cannot pass in altered source text.
     const callArgs: any = { ...rest };
     if (["draft_progress_note", "verify_against_source", "assess_incident"].includes(name)) callArgs.transcript = state.transcript;
@@ -345,7 +352,7 @@ export async function runAgent(generate: GenerateFn, input: AgentInput, onEvent:
     if (name === "verify_against_source" && !output.error) state.verification = output;
     if (name === "assess_incident" && !output.error) state.sirs = output;
     if (name === "route_for_human_review") state.review = output;
-    const step: TraceStep = { step: trace.length + 1, tool: name, reason, args: rest, output, ms: Date.now() - t0, enforcedBy };
+    const step: TraceStep = { step: stepNo, tool: name, reason, args: rest, output, ms: Date.now() - t0, enforcedBy };
     trace.push(step);
     onEvent({ type: "step", step });
     return output;
@@ -370,16 +377,21 @@ export async function runAgent(generate: GenerateFn, input: AgentInput, onEvent:
     const r = await generate({
       model: MODEL,
       contents,
-      config: { systemInstruction: SYSTEM, tools: [{ functionDeclarations: TOOL_DECLARATIONS }], temperature: 0 },
+      config: { systemInstruction: SYSTEM, tools: [{ functionDeclarations: TOOL_DECLARATIONS }], temperature: 0, ...FAST },
     });
     const calls = r.functionCalls || [];
     if (!calls.length) break;
     contents.push(r.candidates?.[0]?.content || { role: "model", parts: calls.map((c: any) => ({ functionCall: c })) });
-    const responses = [];
-    for (const call of calls) {
-      const output = await runTool(call.name, call.args, "agent");
-      responses.push({ functionResponse: { name: call.name, response: { output } } });
-    }
+    // Independent checks in the same turn run in parallel. Steps that produce
+    // input for others (transcribe, draft) and the final hand-off run in order.
+    const ordered = new Set(["transcribe_audio", "draft_progress_note", "route_for_human_review"]);
+    const outputs: any[] = new Array(calls.length);
+    const parallel = calls.map((c: any, i: number) => ({ c, i })).filter(({ c }: any) => !ordered.has(c.name));
+    const sequential = calls.map((c: any, i: number) => ({ c, i })).filter(({ c }: any) => ordered.has(c.name));
+    for (const { c, i } of sequential.filter(({ c }: any) => c.name !== "route_for_human_review")) outputs[i] = await runTool(c.name, c.args, "agent");
+    await Promise.all(parallel.map(async ({ c, i }: any) => { outputs[i] = await runTool(c.name, c.args, "agent"); }));
+    for (const { c, i } of sequential.filter(({ c }: any) => c.name === "route_for_human_review")) outputs[i] = await runTool(c.name, c.args, "agent");
+    const responses = calls.map((c: any, i: number) => ({ functionResponse: { name: c.name, response: { output: outputs[i] } } }));
     contents.push({ role: "user", parts: responses });
   }
 
@@ -387,11 +399,14 @@ export async function runAgent(generate: GenerateFn, input: AgentInput, onEvent:
   if (audio && !trace.some((s) => s.tool === "transcribe_audio"))
     await runTool("transcribe_audio", { reason: "Mandatory: audio attached" }, "orchestrator");
   if (!state.note) await runTool("draft_progress_note", { reason: "Mandatory: no note drafted" }, "orchestrator");
-  if (!state.verification) await runTool("verify_against_source", { reason: "Mandatory safety check" }, "orchestrator");
-  if (!state.sirs) await runTool("assess_incident", { reason: "Mandatory incident check" }, "orchestrator");
+  await Promise.all([
+    state.verification ? null : runTool("verify_against_source", { reason: "Mandatory safety check" }, "orchestrator"),
+    state.sirs ? null : runTool("assess_incident", { reason: "Mandatory incident check" }, "orchestrator"),
+  ]);
   if (!state.review)
     await runTool("route_for_human_review", { summary: state.note?.englishNote || "", reason: "Mandatory human gate" }, "orchestrator");
 
+  trace.sort((a, b) => a.step - b.step);
   return {
     status: "awaiting_rn_confirmation",
     jurisdiction,
@@ -439,6 +454,8 @@ export function registerAgentRoutes(app: Express, generate: GenerateFn) {
     // Streaming mode: one JSON object per line, so the page can show each step as it happens.
     res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("X-Accel-Buffering", "no"); // stop proxies (e.g. Render) from buffering the stream
+    res.flushHeaders?.();
     const send = (obj: any) => res.write(JSON.stringify(obj) + "\n");
     try {
       const result = await runAgent(generate, input, send);

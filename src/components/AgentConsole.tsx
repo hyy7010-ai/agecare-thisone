@@ -62,7 +62,7 @@ export function AgentConsole() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AgentResult | null>(null);
-  const [live, setLive] = useState<{ steps: Step[]; running: { step: number; tool: string; reason: string; enforcedBy: string } | null }>({ steps: [], running: null });
+  const [live, setLive] = useState<{ steps: Step[]; running: { step: number; tool: string; reason: string; enforcedBy: string }[] }>({ steps: [], running: [] });
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const [editedNote, setEditedNote] = useState("");
   const [rnName, setRnName] = useState("");
@@ -103,7 +103,7 @@ export function AgentConsole() {
   const stopRec = () => { recRef.current?.stop(); setRecording(false); };
 
   const run = async () => {
-    setLoading(true); setError(""); setResult(null); setLive({ steps: [], running: null }); setDecision(""); setApprover(""); setRnCheck(""); setLockMsg(""); setOpen({});
+    setLoading(true); setError(""); setResult(null); setLive({ steps: [], running: [] }); setDecision(""); setApprover(""); setRnCheck(""); setLockMsg(""); setOpen({});
     try {
       const fd = new FormData();
       fd.append("language", language);
@@ -129,8 +129,8 @@ export function AgentConsole() {
           buf = buf.slice(nl + 1);
           if (!line) continue;
           const ev = JSON.parse(line);
-          if (ev.type === "tool_start") setLive((l) => ({ steps: l.steps, running: ev }));
-          if (ev.type === "step") setLive((l) => ({ steps: [...l.steps, ev.step], running: null }));
+          if (ev.type === "tool_start") setLive((l) => ({ steps: l.steps, running: [...l.running, ev] }));
+          if (ev.type === "step") setLive((l) => ({ steps: [...l.steps, ev.step], running: l.running.filter((r) => r.step !== ev.step.step) }));
           if (ev.type === "result") final = ev.result;
           if (ev.type === "error") throw new Error(ev.error);
         }
@@ -258,14 +258,14 @@ export function AgentConsole() {
                     {open[t.step] && <pre className="mx-2 mb-2 p-2 bg-slate-50 rounded text-xs overflow-auto max-h-60">{JSON.stringify(t.output, null, 2)}</pre>}
                   </li>
                 ))}
-                {loading && (
-                  <li className="border border-dashed rounded-lg p-2 text-sm flex items-center gap-2 text-slate-600">
+                {loading && (live.running.length ? live.running : [null]).map((r, k) => (
+                  <li key={r ? r.step : `plan-${k}`} className="border border-dashed rounded-lg p-2 text-sm flex items-center gap-2 text-slate-600">
                     <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
-                    {live.running
-                      ? <span><b>{TOOL_LABEL[live.running.tool] || live.running.tool}</b> 进行中… {live.running.reason && <span className="text-xs text-slate-500">理由：{live.running.reason}</span>}</span>
+                    {r
+                      ? <span><b>{TOOL_LABEL[r.tool] || r.tool}</b> 进行中… {live.running.length > 1 && <span className="text-xs text-blue-600">（并行 parallel）</span>} {r.reason && <span className="text-xs text-slate-500">理由：{r.reason}</span>}</span>
                       : <span>AI 正在规划下一步 Planning next step…</span>}
                   </li>
-                )}
+                ))}
               </ol>
             </div>
           )}
